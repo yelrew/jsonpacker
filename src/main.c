@@ -3,12 +3,13 @@
 
 int main() {
 
-    const char input[] = "{ \"key1\": \"value\", \"key2\": 42, \"key3\": true}";
+    const char record1[] = "{ \"key1\": \"value\", \"key2\": 42, \"key3\": true}";
+    const char record2[] = "{\"sadsf\":\"dsewtew\", \"dsre\":3221, \"sdfds\":\"dsfewew\"}";
     int status = 0;
     char *string = NULL;
-    //{“sadsf”:”dsewtew”, “dsre”:3221, “sdfds”:”dsfewew”}
 
-    cJSON *json = cJSON_Parse(input);
+    /* Parse JSON from record1 */
+    cJSON *json = cJSON_Parse(record1);
     if (json == NULL) {
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL) {
@@ -19,9 +20,10 @@ int main() {
         return status;
     }
 
+    /* Print result */
     string = cJSON_Print(json);
     if (string == NULL) {
-        fprintf(stderr, "Failed to print monitor.\n");
+        fprintf(stderr, "Failed to print json.\n");
         status = 1;
         return status;
     }
