@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <apr_hash.h>
+#include <apr_strings.h>
 
 /* Main driver function */
 int JSONp_Packer(const char *filepath);
