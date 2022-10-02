@@ -27,14 +27,18 @@ int JSONp_Packer(const char *filepath){
             status = 1;
             return status;
         }
-        /* Print result */
-        string = cJSON_Print(json);
-        if (string == NULL) {
-            fprintf(stderr, "Failed to print json.\n");
-            status = 1;
-            return status;
-        }
-        printf("\"%s\"\n", string);
+
+        // TODO: Update HashTable with record keys
+        // TODO: Process encoding (expect Hash table and cJSON structure)
+
+//        /* Print result */
+//        string = cJSON_Print(json);
+//        if (string == NULL) {
+//            fprintf(stderr, "Failed to print json.\n");
+//            status = 1;
+//            return status;
+//        }
+//        printf("\"%s\"\n", string);
     }
 
     fclose(fp);

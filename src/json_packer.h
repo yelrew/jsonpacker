@@ -8,6 +8,9 @@
 #define JSON_PACKER_VERSION_MAJOR 1
 #define JSON_PACKER_VERSION_MINOR 0
 
+/* no error */
+#define JSONP_SUCCESS 0
+
 #include <cJSON/cJSON.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +21,9 @@ int JSONp_Packer(const char *filepath);
 
 // Auxiliary functions
 
-/* Main driver function */
-void JSONp_TLVEncode();
+/* TLV function
+   Process TLV encoding (expect Hash table and cJSON structure)
+   Serialize cJSON value along with hash  to two binary files */
+void JSONp_TLVEncode(const cJSON * record);
 
 #endif // JSON_PACKER_H
