@@ -22,8 +22,8 @@ include_directories(jsonpackerc ${CMAKE_SOURCE_DIR}/src
 
 set(target_sources
     main.c
-    json_packer.h
-    json_packer.c
+    jsonp.h
+    jsonp.c
     jsonpasn1.c
     jsonpasn1.h
     cJSON/cJSON.h
