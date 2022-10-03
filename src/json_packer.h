@@ -18,14 +18,23 @@
 #include <apr_hash.h>
 #include <apr_strings.h>
 
+typedef enum {
+    kJsonpASN1,
+    kGnuASN1
+} JSONpEncoder;
+
 /* Main driver function */
-int JSONp_Packer(const char *filepath);
+int JSONp_Pack(const char *filepath);
 
 // Auxiliary functions
 
 /* TLV function
    Process TLV encoding (expect Hash table and cJSON structure)
    Serialize cJSON value along with hash  to two binary files */
-void JSONp_TLVEncode(const cJSON * record);
+
+int JSONp_UpdateDictionary (apr_hash_t *dict, cJSON *record, apr_pool_t *mp);
+int JSONp_SerializeRecord(apr_hash_t *dict, cJSON *record, JSONpEncoder);
+
+int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record);
 
 #endif // JSON_PACKER_H

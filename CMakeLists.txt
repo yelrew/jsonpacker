@@ -24,6 +24,8 @@ set(target_sources
     main.c
     json_packer.h
     json_packer.c
+    jsonpasn1.c
+    jsonpasn1.h
     cJSON/cJSON.h
     cJSON/cJSON.c
 )

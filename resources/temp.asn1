@@ -1,0 +1,13 @@
+test {}
+
+DEFINITIONS EXPLICIT TAGS ::=
+
+BEGIN
+
+TestStruct ::= SEQUENCE {
+	r	INTEGER,
+	s	PrintableString,
+	z	BOOLEAN
+}
+
+END

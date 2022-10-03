@@ -1,0 +1,5 @@
+testStruct test.TestStruct
+
+r 42
+s edu
+z FALSE
