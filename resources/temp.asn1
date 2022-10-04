@@ -5,9 +5,15 @@ DEFINITIONS EXPLICIT TAGS ::=
 BEGIN
 
 TestStruct ::= SEQUENCE {
-	r	INTEGER,
-	s	PrintableString,
-	z	BOOLEAN
+        r1	INTEGER,
+        r2	INTEGER,
+        r3	INTEGER,
+        r4	INTEGER,
+        r5	INTEGER,
+        r6	INTEGER,
+        r7	INTEGER,
+        r8	INTEGER,
+        r9	INTEGER
 }
 
 END

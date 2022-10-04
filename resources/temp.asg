@@ -1,5 +1,11 @@
 testStruct test.TestStruct
 
-r 42
-s edu
-z FALSE
+r1 39
+r2 -39
+r3 -128
+r4 255
+r5 223498
+r6 -1098
+r7 1
+r8 0
+r9 -1

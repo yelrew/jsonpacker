@@ -1,5 +1,126 @@
 //#include "asn1encoder.h"
 
+#include <jsonpasn1.h>
+
+int JSONp_ASN1Serialize(apr_hash_t *dict, const cJSON * record) {
+
+    /*
+     * 1) Add Sequence Tag
+     * 2) Iteratively add fields
+     * 3) Add Sequence Lenght tag
+    */
+
+    unsigned char *derEncrkeyValuePairs = NULL, *derKeyEncrkeyPairs = NULL;
+    unsigned char sequence_class, sequence_tag;
+
+    /* Encode key-Value Pair (encrypted key plus key value)
+     *
+     * ASN1 Encode will be as follows:
+
+     EncryptedkeyValue ::= SEQUENCE {
+         encrkey      INTEGER
+         value     UTF8String,
+     }*/
+
+    sequence_class = ASN1_CLASS_UNIVERSAL;
+    sequence_class |= ASN1_CLASS_STRUCTURED;
+    sequence_tag = ASN1_TAG_SEQUENCE;
+
+    static long keys_counter = 1;
+
+    /* Traverse json structure */
+
+    cJSON *element = record->child;
+
+    while (element != NULL) {
+
+        char *key = element->string;
+        char *encrKey = apr_hash_get (dict,  (const void*) element->string,
+                                      APR_HASH_KEY_STRING);
+        void *value;
+        int type;
+
+        switch (element->type & 0xFF) {
+        case cJSON_Number:
+            if (element->valuedouble == (int) element->valuedouble) {
+                type = ASN1_TYPE_INTEGER;
+                value = (void*) &element->valueint;
+            }
+            else {
+                type = ASN1_TYPE_REAL;
+                value = (void*) &element->valuedouble;
+            }
+            assert(value_type != ASN1_TYPE_REAL);
+            break;
+
+        case cJSON_True:
+        case cJSON_False:
+            type = ASN1_TYPE_BOOLEAN;
+            value = (void*) &element->valueint;
+            break;
+
+        case cJSON_String:
+            type = ASN1_TYPE_UTF8_STRING;
+            value = element->valuestring;
+            break;
+        }
+
+        /* JSONp_EncodeASN1Element(type, void* value);
+         *
+         * // Records
+         *
+         * JSONp_EncodeASN1Element(ASN1_TYPE_INTEGER, encrKey, derEncrkeyValuePairs);
+         * JSONp_EncodeASN1Element(type, value, derEncrkeyValuePairs);
+         *
+         * // Dictionary
+         *
+         * JSONp_EncodeASN1Element(ASN1_TYPE_UTF8_STRING, key, derKeyEncrkeyPairs);
+         * JSONp_EncodeASN1Element(ASN1_TYPE_INTEGER, encrKey, derKeyEncrkeyPairs);
+
+        */
+
+
+        element = element->next;
+    }
+
+    free(derEncrkeyValuePairs);
+    free(derKeyEncrkeyPairs);
+
+    return 0;
+
+    /* Checking Dictionary */
+//    apr_hash_index_t *hi;
+//    for (hi = apr_hash_first(NULL, ht); hi; hi = apr_hash_next(hi)) {
+//        const char *k;
+//        const char *v;
+//        apr_hash_this(hi, (const void**) &k, NULL, (void**) &v);
+//        printf("ht iteration: key=%s, val=%s\n", k, v);
+//    }
+
+//    if (tag_value < 31)
+//      {
+//        /* short form */
+//        ans[0] = (class & 0xE0) + ((unsigned char) (tag_value & 0x1F));
+//        *ans_len = 1;
+//      }
+
+
+
+
+    /* Encode Dictionary
+     *
+     * ASN1 Encode will be as follows:
+
+     KeyEncryption ::= SEQUENCE {
+         key      UTF8String
+         enc_key     INTEGER,
+     }
+
+     */
+
+}
+
+
 ///******************************************************/
 ///* Function : _asn1_insert_tag_der                    */
 ///* Description: creates the DER coding of tags of one */
