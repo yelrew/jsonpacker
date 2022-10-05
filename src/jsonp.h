@@ -14,9 +14,9 @@
 #include <cJSON/cJSON.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <apr_hash.h>
-//#include <apr_strings.h>
+#include <jsonpasn1.h>
+#include <apr_strings.h>
 
 typedef enum {
     kJsonpASN1,

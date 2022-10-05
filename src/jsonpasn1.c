@@ -2,16 +2,13 @@
 
 #include <jsonpasn1.h>
 
-int JSONp_ASN1Serialize(apr_hash_t *dict, const cJSON * record) {
+int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record) {
 
     /*
      * 1) Add Sequence Tag
      * 2) Iteratively add fields
      * 3) Add Sequence Lenght tag
     */
-
-    unsigned char *derEncrkeyValuePairs = NULL, *derKeyEncrkeyPairs = NULL;
-    unsigned char sequence_class, sequence_tag;
 
     /* Encode key-Value Pair (encrypted key plus key value)
      *
@@ -22,23 +19,25 @@ int JSONp_ASN1Serialize(apr_hash_t *dict, const cJSON * record) {
          value     UTF8String,
      }*/
 
-    sequence_class = ASN1_CLASS_UNIVERSAL;
-    sequence_class |= ASN1_CLASS_STRUCTURED;
-    sequence_tag = ASN1_TAG_SEQUENCE;
 
     static long keys_counter = 1;
 
     /* Traverse json structure */
+
+    Asn1Sequence encrValue, keyEncr;
+    Asn1Sequence_Init(&encrValue);
+    Asn1Sequence_Init(&keyEncr);
+
 
     cJSON *element = record->child;
 
     while (element != NULL) {
 
         char *key = element->string;
-        char *encrKey = apr_hash_get (dict,  (const void*) element->string,
+        long *encrypted_key = apr_hash_get (dict,  (const void*) element->string,
                                       APR_HASH_KEY_STRING);
         void *value;
-        int type;
+        enum ASN1_Type type;
 
         switch (element->type & 0xFF) {
         case cJSON_Number:
@@ -50,7 +49,7 @@ int JSONp_ASN1Serialize(apr_hash_t *dict, const cJSON * record) {
                 type = ASN1_TYPE_REAL;
                 value = (void*) &element->valuedouble;
             }
-            assert(value_type != ASN1_TYPE_REAL);
+            assert(type != ASN1_TYPE_REAL);
             break;
 
         case cJSON_True:
@@ -65,60 +64,82 @@ int JSONp_ASN1Serialize(apr_hash_t *dict, const cJSON * record) {
             break;
         }
 
-        /* JSONp_EncodeASN1Element(type, void* value);
-         *
-         * // Records
-         *
-         * JSONp_EncodeASN1Element(ASN1_TYPE_INTEGER, encrKey, derEncrkeyValuePairs);
-         * JSONp_EncodeASN1Element(type, value, derEncrkeyValuePairs);
-         *
-         * // Dictionary
-         *
-         * JSONp_EncodeASN1Element(ASN1_TYPE_UTF8_STRING, key, derKeyEncrkeyPairs);
-         * JSONp_EncodeASN1Element(ASN1_TYPE_INTEGER, encrKey, derKeyEncrkeyPairs);
+        /* Encoding Records */
+        Asn1Sequence_Insert(&encrValue, ASN1_TYPE_INTEGER, encrypted_key);
+        Asn1Sequence_Insert(&encrValue, type, value);
 
-        */
-
+        /* Encoding Dictionary */
+        Asn1Sequence_Insert(&keyEncr, ASN1_TYPE_UTF8_STRING, key);
+        Asn1Sequence_Insert(&keyEncr, ASN1_TYPE_INTEGER, encrypted_key);
 
         element = element->next;
     }
 
-    free(derEncrkeyValuePairs);
-    free(derKeyEncrkeyPairs);
+    // free(derEncrkeyValuePairs);
+    Asn1Sequence_Clear(&encrValue);
+    Asn1Sequence_Clear(&keyEncr);
 
     return 0;
 
-    /* Checking Dictionary */
-//    apr_hash_index_t *hi;
-//    for (hi = apr_hash_first(NULL, ht); hi; hi = apr_hash_next(hi)) {
-//        const char *k;
-//        const char *v;
-//        apr_hash_this(hi, (const void**) &k, NULL, (void**) &v);
-//        printf("ht iteration: key=%s, val=%s\n", k, v);
-//    }
+}
 
-//    if (tag_value < 31)
-//      {
-//        /* short form */
-//        ans[0] = (class & 0xE0) + ((unsigned char) (tag_value & 0x1F));
-//        *ans_len = 1;
-//      }
+int Asn1Sequence_Init(Asn1Sequence* sequence) {
 
+    unsigned char class, tag;
 
+    class = ASN1_CLASS_UNIVERSAL;
+    class |= ASN1_CLASS_STRUCTURED;
+    tag = ASN1_TAG_SEQUENCE;
+    sequence->content_size = 0;
 
+    sequence->data = malloc(ASN1_SEQUENCE_BLOCK_SIZE);
+    memcpy((void*) sequence->data, (void*) &class, 1); /* append class identifier */
+    memcpy((void*) sequence->data, (void*) &tag, 1); /* append tag identifier */
+    sequence->end = sequence->data + 3; /* reserve 1 BYTE for length */
+}
 
-    /* Encode Dictionary
-     *
-     * ASN1 Encode will be as follows:
+int Asn1Sequence_Clear(Asn1Sequence* sequence) {
+    free(sequence->data);
+}
 
-     KeyEncryption ::= SEQUENCE {
-         key      UTF8String
-         enc_key     INTEGER,
-     }
-
-     */
+int Asn1Sequence_Insert(Asn1Sequence* sequence, enum ASN1_Type type, void* value) {
 
 }
+
+int Asn1Sequence_Insert(Asn1Sequence* sequence, enum ASN1_Type type, void* value) {
+
+    enum ASN1_Tag class;
+    enum ASN1_Tag tag;
+    class = ASN1_CLASS_UNIVERSAL;
+    class |= ASN1_CLASS_STRUCTURED;
+    size_t value_length;
+
+    /* Insert and update contents size */
+    switch (type) {
+    case ASN1_TYPE_INTEGER:
+        tag = ASN1_TAG_INTEGER;
+        value_length = sizeof(long);
+        // Reducing integer here
+        break;
+    case ASN1_TYPE_BOOLEAN:
+        tag = ASN1_TAG_BOOLEAN;
+        value_length = 1;
+        // Reducing integer here
+        break;
+    case ASN1_TYPE_UTF8_STRING:
+        tag = ASN1_TAG_UTF8_STRING;
+        value_length = sizeof(long);
+        break;
+    }
+
+
+    // sequence->content_size += 0;
+    // assert(sequence->content_size < 128); /* short-length length only */
+    //sequence->data + 2 = length;
+
+
+}
+
 
 
 ///******************************************************/

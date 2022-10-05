@@ -89,9 +89,12 @@ int JSONp_UpdateDictionary (apr_hash_t *dict, cJSON *record, apr_pool_t *mp) {
         //printf("%s\n", (unsigned char*) element->string);
         //print_string_str((unsigned char*) element->string, stdout);
         if (apr_hash_get (dict,  (const void*) element->string, APR_HASH_KEY_STRING) == NULL) {
-            apr_hash_set(dict, apr_pstrdup(mp, element->string), \
-                         APR_HASH_KEY_STRING, (char*) apr_ltoa(mp, keys_counter++));
+            apr_hash_set(dict, apr_pstrdup(mp, element->string), APR_HASH_KEY_STRING, \
+//                         APR_HASH_KEY_STRING, (char*) apr_ltoa(mp, keys_counter++));
+//                         apr_pmemdup(mp, (const void *) keys_counter, sizeof(long))
+                           (long*) apr_pmemdup(mp, (const void *) &keys_counter, sizeof(keys_counter)));
         }
+        keys_counter++;
         element = element->next;
     }
 
@@ -105,7 +108,7 @@ int JSONp_SerializeRecord(apr_hash_t *dict,
     switch(encoder_type) {
 
     case kJsonpASN1:
-        status_ret = JSONp_ASN1Serialize(dict, record);
+        status_ret = JSONp_EncodeASN1(dict, record);
         break;
     }
 

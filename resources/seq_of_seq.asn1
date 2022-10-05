@@ -1,0 +1,13 @@
+Test {}
+
+DEFINITIONS EXPLICIT TAGS ::=
+
+BEGIN
+
+seq ::= SEQUENCE OF SEQUENCE {
+        name INTEGER,
+        age INTEGER
+}
+
+
+END
