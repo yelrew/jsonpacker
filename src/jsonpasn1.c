@@ -2,7 +2,7 @@
 
 #include <jsonpasn1.h>
 
-int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record) {
+int JSONp_EncodeASN1(const cJSON * record, const apr_hash_t *dict,) {
 
     /*
      * 1) Add Sequence Tag

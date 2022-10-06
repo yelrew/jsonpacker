@@ -108,7 +108,7 @@ int JSONp_SerializeRecord(apr_hash_t *dict,
     switch(encoder_type) {
 
     case kJsonpASN1:
-        status_ret = JSONp_EncodeASN1(dict, record);
+        status_ret = JSONp_EncodeASN1(record, dict);
         break;
     }
 
