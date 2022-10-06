@@ -24,9 +24,9 @@ int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record) {
 
     /* Traverse json structure */
 
-    Asn1Sequence encrValue, keyEncr;
-    Asn1Sequence_Init(&encrValue);
-    Asn1Sequence_Init(&keyEncr);
+    Asn1Array encrValue, keyEncr;
+    Asn1Array_Init(&encrValue);
+    Asn1Array_Init(&keyEncr);
 
 
     cJSON *element = record->child;
@@ -51,13 +51,15 @@ int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record) {
             }
             assert(type != ASN1_TYPE_REAL);
             break;
-
         case cJSON_True:
+            type = ASN1_TYPE_BOOLEAN;
+            element->valueint = 0xFF;
+            value = (void*) &element->valueint;
+            break;
         case cJSON_False:
             type = ASN1_TYPE_BOOLEAN;
             value = (void*) &element->valueint;
             break;
-
         case cJSON_String:
             type = ASN1_TYPE_UTF8_STRING;
             value = element->valuestring;
@@ -65,79 +67,126 @@ int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record) {
         }
 
         /* Encoding Records */
-        Asn1Sequence_Insert(&encrValue, ASN1_TYPE_INTEGER, encrypted_key);
-        Asn1Sequence_Insert(&encrValue, type, value);
+        Asn1Array_AppendPair(&encrValue,
+                            ASN1_TYPE_INTEGER, encrypted_key, /* encrypted key */
+                            type, value); /* record value */
 
         /* Encoding Dictionary */
-        Asn1Sequence_Insert(&keyEncr, ASN1_TYPE_UTF8_STRING, key);
-        Asn1Sequence_Insert(&keyEncr, ASN1_TYPE_INTEGER, encrypted_key);
+        Asn1Array_AppendPair(&keyEncr,
+                            ASN1_TYPE_UTF8_STRING, key, /* original key */
+                            ASN1_TYPE_INTEGER, encrypted_key); /* encrypted key */
 
         element = element->next;
+
     }
 
     // free(derEncrkeyValuePairs);
-    Asn1Sequence_Clear(&encrValue);
-    Asn1Sequence_Clear(&keyEncr);
+    Asn1Array_Clear(&encrValue);
+    Asn1Array_Clear(&keyEncr);
 
     return 0;
 
 }
 
-int Asn1Sequence_Init(Asn1Sequence* sequence) {
+int Asn1Array_Init(Asn1Array* array) {
 
-    unsigned char class, tag;
+    enum ASN1_Class array_class;
+    enum ASN1_Tag array_tag;
 
-    class = ASN1_CLASS_UNIVERSAL;
-    class |= ASN1_CLASS_STRUCTURED;
-    tag = ASN1_TAG_SEQUENCE;
-    sequence->content_size = 0;
+    array_class = ASN1_CLASS_UNIVERSAL;
+    array_class |= ASN1_CLASS_STRUCTURED;
+    array_tag = array_class | ASN1_TAG_SEQUENCE_OF;
 
-    sequence->data = malloc(ASN1_SEQUENCE_BLOCK_SIZE);
-    memcpy((void*) sequence->data, (void*) &class, 1); /* append class identifier */
-    memcpy((void*) sequence->data, (void*) &tag, 1); /* append tag identifier */
-    sequence->end = sequence->data + 3; /* reserve 1 BYTE for length */
+    /* Tries to allocate array memory (default ASN1_ARRAY_BLOCK_SIZE bytes) */
+    array->data = malloc(ASN1_ARRAY_BLOCK_SIZE);
+    array->next = array->data;
+    if (array->data == NULL) {
+        printf("Error: couldn't allocate memory to array\n");
+        return JSONp_ASN1_MEM_ERROR;
+    }
+    array->size = ASN1_ARRAY_BLOCK_SIZE;
+
+    memcpy((void*) array->next++, (void*) &array_tag, 1); /* append tag identifier */
+    array->next++; /* reserve 1 BYTE for length */
+
+    return JSONp_ASN1_SUCCESS;
+
 }
 
-int Asn1Sequence_Clear(Asn1Sequence* sequence) {
-    free(sequence->data);
+
+/* Appends a pair to an ASN1 array */
+
+int Asn1Array_AppendPair(Asn1Array* array, \
+                        enum ASN1_Type first_type, void* first_value, \
+                        enum ASN1_Type second_type, void* second_value) {
+
+    enum ASN1_Tag pair_class;
+    enum ASN1_Tag pair_tag;
+    unsigned char* pair_start; /* only pair content (ignore pair head) */
+
+    pair_class = ASN1_CLASS_UNIVERSAL;
+    pair_class |= ASN1_CLASS_STRUCTURED;
+    pair_tag = ASN1_TAG_SEQUENCE | pair_class;
+
+    assert(array->size > 2);
+    /* Two bytes are needed for the tag and length fields */
+    memcpy((void*) array->next++, (void*) &pair_tag, 1);
+    /* Store the initial data position */
+    pair_start = ++array->next;
+
+    /* Writing first element */
+    Asn1Array_Insert(array, first_type, first_value);
+    /* Writing second element */
+    Asn1Array_Insert(array, second_type, second_value);
+    /* Setting pair length */
+    *(pair_start - 1) = array->next - pair_start;
+
+    /* Updating the array length !! */
+    *(array->data + 1) += array->next - pair_start + 2;
 }
 
-int Asn1Sequence_Insert(Asn1Sequence* sequence, enum ASN1_Type type, void* value) {
 
-}
+int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
 
-int Asn1Sequence_Insert(Asn1Sequence* sequence, enum ASN1_Type type, void* value) {
-
-    enum ASN1_Tag class;
+    enum ASN1_Tag element_class;
     enum ASN1_Tag tag;
-    class = ASN1_CLASS_UNIVERSAL;
-    class |= ASN1_CLASS_STRUCTURED;
-    size_t value_length;
+
+    element_class = ASN1_CLASS_UNIVERSAL;
+    unsigned char length;
+    size_t num_bytes = 0;
 
     /* Insert and update contents size */
     switch (type) {
     case ASN1_TYPE_INTEGER:
-        tag = ASN1_TAG_INTEGER;
-        value_length = sizeof(long);
+        tag = element_class | ASN1_TAG_INTEGER;
+        length = 1; //sizeof(long);
         // Reducing integer here
         break;
     case ASN1_TYPE_BOOLEAN:
-        tag = ASN1_TAG_BOOLEAN;
-        value_length = 1;
+        tag = element_class | ASN1_TAG_BOOLEAN;
+        length = 1;
         // Reducing integer here
         break;
     case ASN1_TYPE_UTF8_STRING:
-        tag = ASN1_TAG_UTF8_STRING;
-        value_length = sizeof(long);
+        tag = element_class | ASN1_TAG_UTF8_STRING;
+        length = strlen(value);
         break;
     }
 
+    // Write tag, length and value
+    num_bytes = 2 + length;
+    assert(array->size - (array->next - array->data) -1 > num_bytes);
+    memcpy((void*) array->next++, (void*) &tag, 1);
+    memcpy((void*) array->next++, (void*) &length, 1);
+    memcpy((void*) array->next, value, length);
+    array->next += length;
 
-    // sequence->content_size += 0;
-    // assert(sequence->content_size < 128); /* short-length length only */
-    //sequence->data + 2 = length;
+    return 0;
 
+}
 
+int Asn1Array_Clear(Asn1Array* array) {
+    free(array->data);
 }
 
 

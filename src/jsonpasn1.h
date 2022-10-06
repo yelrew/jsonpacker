@@ -29,7 +29,9 @@ typedef struct node_asn_struct{
 /*  Return codes */
 /*****************************************/
 
-#define ASN1_SUCCESS               0
+#define JSONp_SUCCESS              0
+#define JSONp_ASN1_SUCCESS         0
+#define JSONp_ASN1_MEM_ERROR       1
 #define ASN1_FILE_NOT_FOUND        1
 #define ASN1_ELEMENT_NOT_FOUND     2
 #define ASN1_IDENTIFIER_NOT_FOUND  3
@@ -41,7 +43,7 @@ typedef struct node_asn_struct{
 #define ASN1_TAG_IMPLICIT          9
 #define ASN1_ERROR_TYPE_ANY        10
 #define ASN1_SYNTAX_ERROR          11
-#define ASN1_MEM_ERROR		   12
+#define ASN1_MEM_ERROR             12
 #define ASN1_DER_OVERFLOW          13
 #define ASN1_NAME_TOO_LONG         14
 #define ASN1_ARRAY_ERROR           15
@@ -111,9 +113,11 @@ enum ASN1_Type {
 /* ASN1 Universal Tag values */
 
 enum ASN1_Tag {
+
     ASN1_TAG_BOOLEAN = 0x01,
     ASN1_TAG_INTEGER = 0x02,
     ASN1_TAG_SEQUENCE =	0x10,
+    ASN1_TAG_SEQUENCE_OF = 0x10,
     ASN1_TAG_SET = 0x11,
     ASN1_TAG_OCTET_STRING = 0x04,
     ASN1_TAG_BIT_STRING = 0x03,
@@ -126,22 +130,40 @@ enum ASN1_Tag {
     ASN1_TAG_VISIBLE_STRING = 0x1A,
 };
 
-#define ASN1_SEQUENCE_BLOCK_SIZE 4096
+
+/* Asn1Array
+ *
+ * A container that model the ASN1 tag `SEQUENCE OF`
+ *
+*/
 
 typedef struct {
 
-//    enum ASN1_Class asn1_class; /* Container class according to ASN1 */
-//    enum ASN1_Tag asn1_tag; /* Container tag according to ASN1 */
     unsigned char *data; /* Der encoding of the container */
-    unsigned char *end; /* points to next available space in data */
-    size_t content_size; /* size in bytes */
+    unsigned char *next; /* points to next available space in data */
+    size_t size; /* array size in bytes */
 
-} Asn1Sequence;
+} Asn1Array;
 
-int Asn1Sequence_Init(Asn1Sequence* sequence);
-int Asn1Sequence_Clear(Asn1Sequence* sequence);
 
-int Asn1Sequence_Insert(Asn1Sequence* , enum ASN1_Type type, void* value);
+#define ASN1_ARRAY_BLOCK_SIZE 4096
+
+int Asn1Array_Init(Asn1Array* sequence);
+int Asn1Array_Clear(Asn1Array* sequence);
+
+/* Insert a simple element into an Asn1Array */
+int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value);
+
+/* **********************
+ * Asn1Array_AppendPair
+ *
+ *  Appends a pair to an ASN1 array.
+ *  A pair is modeled as an ASN1 SEQUENCE tag with two elements.
+ *
+ * */
+int Asn1Array_AppendPair(Asn1Array* array, \
+                        enum ASN1_Type first_type, void* first_value, \
+                        enum ASN1_Type second_type, void* second_value);
 
 int JSONp_ASN1Encode(apr_hash_t *dict, const cJSON * record);
 

@@ -7,7 +7,7 @@ BEGIN
 seq ::= SEQUENCE OF SEQUENCE {
         name INTEGER,
         age INTEGER
-}
+    }
 
 
 END

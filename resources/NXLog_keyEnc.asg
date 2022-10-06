@@ -1,0 +1,15 @@
+test NXL
+
+keyEnc NEW
+keyEnc.?1.key key1
+keyEnc.?1.enc 1
+keyEnc NEW
+keyEnc.?2.key key2
+keyEnc.?2.enc 2
+keyEnc NEW
+keyEnc.?3.key key3
+keyEnc.?3.enc 3
+
+
+
+

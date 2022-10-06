@@ -1,0 +1,28 @@
+test EncValue ::= {
+   {
+    enc 1,
+    value str "value"
+  },
+   {
+    enc 3,
+    value bool TRUE
+  }
+}
+
+
+
+test KeyEnc ::= {
+   {
+    key "key1",
+    enc 1
+  },
+   {
+    key "key2"
+    enc 2
+  },
+   {
+    key "key3",
+    enc 3
+  }
+}
+ 

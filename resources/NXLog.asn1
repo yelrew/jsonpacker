@@ -1,0 +1,23 @@
+NXL {}
+
+DEFINITIONS EXPLICIT TAGS ::=
+
+BEGIN
+
+-- libtasn checks order !!
+
+keyEnc ::= SEQUENCE OF SEQUENCE {
+               key UTF8String,
+               enc INTEGER
+           }
+
+
+
+-- Schema for the following JSON records:
+
+-- {"key1": "value", "key2": 42, "key3": true}
+-- {"sadsf":"dsewtew", "dsre":3221, "sdfds":"dsfewew"}
+
+--
+
+END

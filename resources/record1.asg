@@ -1,0 +1,15 @@
+TEST Test
+
+rec NEW
+rec.?1.enckey 1
+rec.?1.value.str value
+rec NEW
+rec.?2.enckey 2
+rec.?2.value.int 42
+rec NEW
+rec.?3.enckey 3
+rec.?3.value.bool TRUE
+
+
+
+

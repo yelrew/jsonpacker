@@ -1,0 +1,20 @@
+test NXL
+
+encValue NEW
+encValue.?1.enc 1
+encValue.?1.value.str value
+encValue NEW
+encValue.?2.enc 2
+encValue.?2.value.int 42
+encValue NEW
+encValue.?3.enc 3
+encValue.?3.value.bool TRUE
+
+
+
+
+
+
+
+
+
