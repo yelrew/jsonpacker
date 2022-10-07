@@ -24,12 +24,12 @@ set(target_sources
     main.c
     jsonp.h
     jsonp.c
-    jsonpasn1.c
-    jsonpasn1.h
-    cJSON/cJSON.h
-    cJSON/cJSON.c
+    asn1.c
+    asn1.h
     argparser.c
     argparser.h
+    cJSON/cJSON.h
+    cJSON/cJSON.c
 )
 
 list(TRANSFORM target_sources PREPEND "${CMAKE_SOURCE_DIR}/src/")

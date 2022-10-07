@@ -1,17 +1,15 @@
 #include <jsonp.h>
-#include <argp.h>
-#include <stdio.h>
 #include <argparser.h>
 
 int main(int argc, char** argv) {
     int status;
     FILE *outstream;
-    Arguments arguments;
+    JSONpArgs jsonp_args;
 
     /* Where the magic happens */
-    argparser (&argc, argv, &arguments);
+    jsonp_argparser (&argc, argv, &jsonp_args);
     // const char *filepath = "../resources/records.txt";
-    status = JSONp_Pack(arguments.infile);
+    status = JSONp_Pack(&jsonp_args);
     return status;
 }
 

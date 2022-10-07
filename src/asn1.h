@@ -101,7 +101,10 @@ enum ASN1_Tag {
  * @param dict  Dictionary (hash table) where the entries are the keys
  *              and the values are the encrypted keys
  * @return int return status
- * @remarks
+ * @remarks When enconding the dictionary, only the elements present in the
+ *          dictionary are encoded, as the dicionary may contain elements
+ *          of another records.
+ *
  *     Encode key-Value Pair (encrypted key plus key value)
      *
      * ASN1 Encode will be as follows:
@@ -147,6 +150,16 @@ int Asn1Array_Init(Asn1Array* array);
 int Asn1Array_Clear(Asn1Array* array);
 
 /**
+ * Asn1Array_Print
+ * Print the array's internal bytes
+ *
+ * @param array Asn1Array array
+ * @param message Additional header message
+ * @return int status
+ */
+int Asn1Array_Print(Asn1Array* array, char*  message);
+
+/**
  * Asn1Array_Insert
  * Insert a simple ASN.1 element into an Asn1Array
  *
@@ -173,5 +186,6 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value);
 int Asn1Array_AppendPair(Asn1Array* array, \
                         enum ASN1_Type first_type, void* first_value, \
                         enum ASN1_Type second_type, void* second_value);
+
 
 #endif

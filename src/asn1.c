@@ -1,10 +1,8 @@
 //#include "asn1encoder.h"
 
-#include <jsonpasn1.h>
+#include <asn1.h>
 
 int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
-
-    static long keys_counter = 1;
 
     /* Traverse json structure */
 
@@ -31,18 +29,22 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
             } else {
                 type = ASN1_TYPE_REAL;
                 value = (void*) &element->valuedouble;
-            }
-            assert(type != ASN1_TYPE_REAL);
+                fprintf (stderr, "Error: Invalid JSON type detected!\n");
+                return JSONP_cJSON_INVALID_TYPE;
+            }            
             break;
+
         case cJSON_True:
             type = ASN1_TYPE_BOOLEAN;
             element->valueint = 0xFF;
             value = (void*) &element->valueint;
             break;
+
         case cJSON_False:
             type = ASN1_TYPE_BOOLEAN;
             value = (void*) &element->valueint;
             break;
+
         case cJSON_String:
             type = ASN1_TYPE_UTF8_STRING;
             value = element->valuestring;
@@ -51,17 +53,20 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
 
         /* Encoding Records */
         Asn1Array_AppendPair(&encrValue,
-                            ASN1_TYPE_INTEGER, encrypted_key, /* encrypted key */
-                            type, value); /* record value */
+                             ASN1_TYPE_INTEGER, encrypted_key, /* encrypted key */
+                             type, value); /* record value */
 
         /* Encoding Dictionary */
         Asn1Array_AppendPair(&keyEncr,
-                            ASN1_TYPE_UTF8_STRING, key, /* original key */
-                            ASN1_TYPE_INTEGER, encrypted_key); /* encrypted key */
+                             ASN1_TYPE_UTF8_STRING, key, /* original key */
+                             ASN1_TYPE_INTEGER, encrypted_key); /* encrypted key */
 
         element = element->next;
 
     }
+    /* Print binary array */
+    Asn1Array_Print(&encrValue, "ASN.1 (DER) encoded records\n");
+    Asn1Array_Print(&keyEncr, "ASN.1 (DER) encoded keys\n");
 
     // free(derEncrkeyValuePairs);
     Asn1Array_Clear(&encrValue);
@@ -163,7 +168,6 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
     memcpy((void*) array->next++, (void*) &length, 1);
     memcpy((void*) array->next, value, length);
     array->next += length;
-
     return 0;
 
 }
@@ -173,82 +177,18 @@ int Asn1Array_Clear(Asn1Array* array) {
 }
 
 
+int Asn1Array_Print(Asn1Array* array, char* message) {
 
-///******************************************************/
-///* Function : _asn1_insert_tag_der                    */
-///* Description: creates the DER coding of tags of one */
-///* NODE.                                              */
-///* Parameters:                                        */
-///*   node: pointer to the tree element.               */
-///*   der: string returned                             */
-///*   counter: number of meanful bytes of DER          */
-///*            (counter[0]..der[*counter-1]).          */
-///* Return:                                            */
-///*   ASN1_GENERIC_ERROR if the type is unknown,       */
-///*   otherwise ASN1_SUCCESS.                          */
-///******************************************************/
+    fprintf(stdout, "%s\n", message);
+    int num_bytes_encoded = array->next - array->data;
+    unsigned char* array_element = array->data;
+    /* Print DER encoding */
+    fprintf (stdout, "/***************/\nNumber of bytes=%d\n", num_bytes_encoded);
+    while (array_element != array->next)
+      fprintf (stdout, "%02X ", *array_element++);
+    fputs ("\n/***************/\n\n", stdout);
 
-//int _asn1_insert_tag_der(node_asn *node, unsigned char *der, int *offset) {
-
-//    node_asn *p;
-//    int tag_len;
-
-//    switch(type_field(node->type)){
-
-//    case TYPE_INTEGER:
-//        _asn1_tag_der(UNIVERSAL, TAG_INTEGER, der + (*offset), &tag_len);
-//        break;
-//    case TYPE_BOOLEAN:
-//        _asn1_tag_der(UNIVERSAL, TAG_BOOLEAN, der + (*offset), &tag_len);
-//        break;
-//    case TYPE_OCTET_STRING:
-//        _asn1_tag_der(UNIVERSAL, TAG_OCTET_STRING, der + (*offset), &tag_len);
-//        break;
-//    case TYPE_BIT_STRING:
-//        _asn1_tag_der(UNIVERSAL, TAG_BIT_STRING, der + (*offset), &tag_len);
-//        break;
-//    case TYPE_SEQUENCE: case TYPE_SEQUENCE_OF:
-//        _asn1_tag_der(UNIVERSAL|STRUCTURED, TAG_SEQUENCE, der + (*offset), &tag_len);
-//        break;
-//    case TYPE_CHOICE:
-//        tag_len=0;
-//        break;
-//    case TYPE_ANY:
-//        tag_len=0;
-//        break;
-//    default:
-//        return ASN1_GENERIC_ERROR;
-//    }
-
-//    *offset += tag_len;
-
-//    return ASN1_SUCCESS;
-//}
+    fprintf(stdout, "");
 
 
-///******************************************************/
-///* Function : _asn1_tag_der                           */
-///* Description: creates the DER coding for the CLASS  */
-///* and TAG parameters.                                */
-///* Parameters:                                        */
-///*   class: value to convert.                         */
-///*   tag_value: value to convert.                     */
-///*   ans: string returned.                            */
-///*   ans_len: number of meanful bytes of ANS          */
-///*            (ans[0]..ans[ans_len-1]).               */
-///* Return:                                            */
-///******************************************************/
-
-//void _asn1_tag_der(unsigned char class, unsigned int tag_value, unsigned char *ans, int *len_len) {
-//    assert(tag_value < 30); /* Only short tag form accepted */
-//    ans[0] = (class & 0xE0) + ((unsigned char)(tag_value & 0x1F));
-//    *len_len = 1;
-//}
-
-//unsigned long _asn1_get_length_der(unsigned char *der,int  *len_len) {
-
-//    assert(!(der[0]&128)); /* short lenghts (1 BYTE) only!! */
-//    *len_len = 1; /* 1 BYTE */
-//    return der[0]; /* Length value is in the first position after class-type
-//}
-
+}

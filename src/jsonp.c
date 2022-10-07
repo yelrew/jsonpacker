@@ -1,15 +1,20 @@
 #include <jsonp.h>
+#include <argparser.h>
 
-int JSONp_Pack(const char *filepath){
+int JSONp_Pack(JSONpArgs* jsonp_args) {
 
+    const char *records_filepath = jsonp_args->infile;
     int status = 0;
     apr_pool_t *mp; /* apr memory pool */
     apr_hash_t *dict; /* dictionary */
 
+    fprintf(stdout, "JSON Packer %d.%d\n\n", \
+            JSONP_VERSION_MAJOR, JSONP_VERSION_MINOR);
+
     /* Open file containing JSON records */
-    FILE *fp = fopen(filepath, "r");
+    FILE *fp = fopen(records_filepath, "r");
     if(fp == NULL) {
-        fprintf(stderr, "Unable to open file \"%s\"\n", filepath);
+        fprintf(stderr, "Unable to open file \"%s\"\n", records_filepath);
         return JSONP_FILE_OPEN_ERROR;
     }
 
@@ -22,6 +27,7 @@ int JSONp_Pack(const char *filepath){
 
     char *record_str = NULL;
     size_t len = 0;
+    size_t num_records = 0;
 
     while(getline(&record_str, &len, fp) != -1) {
 
@@ -35,16 +41,23 @@ int JSONp_Pack(const char *filepath){
             return JSONP_cJSON_SYNTAX_ERROR;
         }
 
-        /* Update dictionary keys from current record */
+        fprintf(stdout, "Processing record %d ...\n\n", ++num_records);
+
+        /* Print record */
+        status = JSONp_cJSON_print(record);
+        if (status!= JSONP_SUCCESS) break;
+
+        /* Update Dictionary based on the record keys */
         JSONp_UpdateDictionary(dict, record, mp);
 
+        /* Print encoded records with keys  */
+        status = JSONp_PrintEncoding(dict, record);
+        if (status!= JSONP_SUCCESS) break;
+
         /* Serializing current record */
-        JSONp_SerializeRecord(dict, record, kJsonpASN1);
+        status = JSONp_SerializeRecord(dict, record, jsonp_args);
+        if (status != JSONP_SUCCESS) break;
 
-        // TODO: Process encoding (expect Hash table and cJSON structure)
-
-//        apr_hash_set(ht, apr_pstrdup(mp, "key1"), APR_HASH_KEY_STRING, (int*)&val1);
-//        apr_hash_set(ht, (const void*) "key3", APR_HASH_KEY_STRING, (int*)&val1);
 
 //        /* get the value from a key */
 //       {
@@ -55,15 +68,6 @@ int JSONp_Pack(const char *filepath){
 
     }
 
-    /* Checking Dictionary */
-//    apr_hash_index_t *hi;
-//    for (hi = apr_hash_first(NULL, ht); hi; hi = apr_hash_next(hi)) {
-//        const char *k;
-//        const char *v;
-//        apr_hash_this(hi, (const void**) &k, NULL, (void**) &v);
-//        printf("ht iteration: key=%s, val=%s\n", k, v);
-//    }
-
     /* The hash table is automatically destroyed after @mp */
     apr_pool_destroy(mp);
     apr_terminate();
@@ -72,16 +76,109 @@ int JSONp_Pack(const char *filepath){
     return status;
 }
 
+int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record) {
+
+    cJSON *pair = record->child;
+
+    /* Print encoded records (Encoded key : value) */
+
+    fprintf(stdout, "Encoded records:\n{\n");
+
+    while (pair != NULL) {
+        const unsigned char* key = pair->string;
+        const long *enc_key = apr_hash_get (dict,  (const void*) key, APR_HASH_KEY_STRING);
+
+        if (enc_key == NULL) {
+            fprintf (stderr, "Error when printing dicionary\n.");
+            fprintf(stderr, "The key \"%s\" does not exist.\n",  key);
+            return JSONP_APR_MISSING_KEY;
+        }
+
+        fprintf(stdout, "\t%ld : ", *enc_key); /* encoded key (number) */
+        switch (pair->type & 0xFF) {
+        case cJSON_Number:
+            if (pair->valuedouble == (int) pair->valuedouble) {
+                fprintf(stdout,  "%d", pair->valueint);
+            } else {
+                fprintf(stdout,  "%g", pair->valuedouble);
+            }
+            break;
+        case cJSON_True:
+            fprintf(stdout,  "true");
+            break;
+        case cJSON_False:
+            fprintf(stdout,  "false");
+            break;
+        case cJSON_String:
+            fprintf(stdout,  "\"%s\"", pair->valuestring);
+            break;
+        default:
+            fprintf (stderr, "Error: Invalid JSON type detected!\n");
+            return JSONP_cJSON_INVALID_TYPE;
+        }
+
+        if (pair->next) fprintf(stdout, ",\n");
+        pair = pair->next;
+    }
+
+    fprintf(stdout, "\n}\n");
+
+    /* Print keys encoding (Key : encoded key) */
+
+    pair = record->child;
+    fprintf(stdout, "Keys encoding:\n{\n");
+
+    while (pair != NULL) {
+        const unsigned char* key = pair->string;
+        const long *enc_key = apr_hash_get (dict,  (const void*) key, APR_HASH_KEY_STRING);
+
+        if (enc_key == NULL) {
+            fprintf (stderr, "Error when printing dicionary\n.");
+            fprintf(stderr, "The key \"%s\" does not exist.\n",  key);
+            return JSONP_APR_MISSING_KEY;
+        }
+        fprintf(stdout, "\t\"%s\" : %ld", key, *enc_key);
+        if (pair->next) fprintf(stdout, ",\n");
+
+        pair = pair->next;
+    }
+
+    fprintf(stdout, "\n}\n\n");
+
+    return JSONP_SUCCESS;
+
+}
+
+int JSONp_PrintDict (apr_hash_t *dict) {
+
+    apr_hash_index_t *dict_element = apr_hash_first(NULL, dict);
+
+    while (dict_element) {
+        const long *value;
+        const char *key;
+        apr_hash_this(dict_element, (const void**) &key, NULL, (void**) &value);
+        fprintf(stdout, "\t%ld : \"%s\"", *value, key);
+        if (apr_hash_next(dict_element)) fprintf(stdout, ",\n");
+        else break;
+    }
+
+}
+
+
+
 void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
 
     static long keys_counter = 1;
     /* Traverse json structure */
     cJSON *element = record->child;
     while (element != NULL) {
-        if (apr_hash_get (dict,  (const void*) element->string, APR_HASH_KEY_STRING) == NULL) {
-            apr_hash_set(dict, apr_pstrdup(mp, element->string), APR_HASH_KEY_STRING, \
-                           (long*) apr_pmemdup(mp, (const void *) &keys_counter, sizeof(keys_counter)));
-        }
+        if (apr_hash_get (dict,  (const void*) element->string,
+                          APR_HASH_KEY_STRING) == NULL)
+            {
+                apr_hash_set(dict, apr_pstrdup(mp, element->string), APR_HASH_KEY_STRING, \
+                             (long*) apr_pmemdup(mp, (const void *) &keys_counter,
+                             sizeof(keys_counter)));
+            }
         keys_counter++;
         element = element->next;
     }
@@ -90,15 +187,17 @@ void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *
 
 int JSONp_SerializeRecord(apr_hash_t *dict,
                           cJSON *record,
-                          JSONpEncoder encoder_type) {
-    int status =  0;
-    switch(encoder_type) {
-
-    case kJsonpASN1:
+                          JSONpArgs* jsonp_args) {
+    int status = 0;
+    switch(jsonp_args->encoder) {
+    case JpASN1:
         status = JSONp_ASN1Encode(record, dict);
         break;
+    default:
+        fprintf(stderr, "Error: unknow encoder type \"%s\"\n",jsonp_args->encoder_name);
+        status = JSONP_MISSING_ENCODER;
+        break;
     }
-
     return status;
 }
 
@@ -110,7 +209,7 @@ int JSONp_cJSON_print(const cJSON * record) {
         fprintf(stderr, "Failed to print json.\n");
         return JSONP_cJSON_PRINT_ERROR;
     }
-    printf("\"%s\"\n", string);
+    fprintf(stdout, "Input record:\n\"%s\"\n\n", string);
     return JSONP_SUCCESS;
 
 }
