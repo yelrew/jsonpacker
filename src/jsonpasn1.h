@@ -112,7 +112,7 @@ enum ASN1_Tag {
      }
 
 */
-int JSONp_ASN1Encode(const cJSON * record, const apr_hash_t *dict);
+int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict);
 
 
 /**

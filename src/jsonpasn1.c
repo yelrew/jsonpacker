@@ -2,7 +2,7 @@
 
 #include <jsonpasn1.h>
 
-int JSONp_ASN1Encode(const cJSON * record, const apr_hash_t *dict) {
+int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
 
     static long keys_counter = 1;
 
