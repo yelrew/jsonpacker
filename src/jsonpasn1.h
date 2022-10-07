@@ -1,5 +1,5 @@
 /** @file jsonpasn1.h
- * Functions and definitions of the JSONp-ASN1 interface
+ * Functions and definitions for the JSONp-ASN1 interface
  */
 
 #ifndef ASN1_H
@@ -9,15 +9,13 @@
 #include <string.h>
 
 /**
- * @ingroup JSONp Return codes
+ * @ingroup JSONp ASN1 Return codes
  *
  * @{
  */
 
-#define JSONp_SUCCESS              0 /**< Success */
-#define JSONp_ASN1_SUCCESS         0 /**< ASN1 Encoding sucess */
-#define JSONp_ASN1_MEM_ERROR       1
-#define ASN1_FILE_NOT_FOUND        1
+#define JSONP_ASN1_SUCCESS           0 /**< ASN1 Encoding sucess */
+#define JSONP_ASN1_MEM_ERROR         1
 //#define ASN1_ELEMENT_NOT_FOUND     2
 //#define ASN1_IDENTIFIER_NOT_FOUND  3
 //#define ASN1_DER_ERROR             4
@@ -103,7 +101,17 @@ enum ASN1_Tag {
  * @param dict  Dictionary (hash table) where the entries are the keys
  *              and the values are the encrypted keys
  * @return int return status
- */
+ * @remarks
+ *     Encode key-Value Pair (encrypted key plus key value)
+     *
+     * ASN1 Encode will be as follows:
+
+     EncryptedkeyValue ::= SEQUENCE {
+         encrkey      INTEGER
+         value     UTF8String,
+     }
+
+*/
 int JSONp_ASN1Encode(const cJSON * record, const apr_hash_t *dict);
 
 

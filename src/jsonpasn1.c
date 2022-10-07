@@ -2,23 +2,7 @@
 
 #include <jsonpasn1.h>
 
-int JSONp_EncodeASN1(const cJSON * record, const apr_hash_t *dict,) {
-
-    /*
-     * 1) Add Sequence Tag
-     * 2) Iteratively add fields
-     * 3) Add Sequence Lenght tag
-    */
-
-    /* Encode key-Value Pair (encrypted key plus key value)
-     *
-     * ASN1 Encode will be as follows:
-
-     EncryptedkeyValue ::= SEQUENCE {
-         encrkey      INTEGER
-         value     UTF8String,
-     }*/
-
+int JSONp_ASN1Encode(const cJSON * record, const apr_hash_t *dict) {
 
     static long keys_counter = 1;
 
@@ -44,8 +28,7 @@ int JSONp_EncodeASN1(const cJSON * record, const apr_hash_t *dict,) {
             if (element->valuedouble == (int) element->valuedouble) {
                 type = ASN1_TYPE_INTEGER;
                 value = (void*) &element->valueint;
-            }
-            else {
+            } else {
                 type = ASN1_TYPE_REAL;
                 value = (void*) &element->valuedouble;
             }
@@ -102,14 +85,14 @@ int Asn1Array_Init(Asn1Array* array) {
     array->next = array->data;
     if (array->data == NULL) {
         printf("Error: couldn't allocate memory to array\n");
-        return JSONp_ASN1_MEM_ERROR;
+        return JSONP_ASN1_MEM_ERROR;
     }
     array->size = ASN1_ARRAY_BLOCK_SIZE;
 
     memcpy((void*) array->next++, (void*) &array_tag, 1); /* append tag identifier */
     array->next++; /* reserve 1 BYTE for length */
 
-    return JSONp_ASN1_SUCCESS;
+    return JSONP_ASN1_SUCCESS;
 
 }
 

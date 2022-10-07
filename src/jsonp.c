@@ -2,7 +2,6 @@
 
 int JSONp_Pack(const char *filepath){
 
-    char *string = NULL;
     int status = 0;
     apr_pool_t *mp; /* apr memory pool */
     apr_hash_t *dict; /* dictionary */
@@ -11,7 +10,7 @@ int JSONp_Pack(const char *filepath){
     FILE *fp = fopen(filepath, "r");
     if(fp == NULL) {
         fprintf(stderr, "Unable to open file \"%s\"\n", filepath);
-        return 1;
+        return JSONP_FILE_OPEN_ERROR;
     }
 
     /* Creating APR memory pool */
@@ -20,6 +19,7 @@ int JSONp_Pack(const char *filepath){
     dict = apr_hash_make(mp);
 
     /* Parse records */
+
     char *record_str = NULL;
     size_t len = 0;
 
@@ -32,8 +32,7 @@ int JSONp_Pack(const char *filepath){
                 fprintf(stderr, "JSON Syntax Error before: %s\n", error_ptr);
             }
             cJSON_Delete(record);
-            status = 1;
-            return status;
+            return JSONP_cJSON_SYNTAX_ERROR;
         }
 
         /* Update dictionary keys from current record */
@@ -53,14 +52,7 @@ int JSONp_Pack(const char *filepath){
 //           printf("val for \"key1\" is %d\n", *val);
 //       }
 
-//        /* Print result */
-//        string = cJSON_Print(json);
-//        if (string == NULL) {
-//            fprintf(stderr, "Failed to print json.\n");
-//            status = 1;
-//            return status;
-//        }
-//        printf("\"%s\"\n", string);
+
     }
 
     /* Checking Dictionary */
@@ -80,38 +72,46 @@ int JSONp_Pack(const char *filepath){
     return status;
 }
 
-int JSONp_UpdateDictionary (apr_hash_t *dict, cJSON *record, apr_pool_t *mp) {
+void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
 
     static long keys_counter = 1;
     /* Traverse json structure */
     cJSON *element = record->child;
     while (element != NULL) {
-        //printf("%s\n", (unsigned char*) element->string);
-        //print_string_str((unsigned char*) element->string, stdout);
         if (apr_hash_get (dict,  (const void*) element->string, APR_HASH_KEY_STRING) == NULL) {
             apr_hash_set(dict, apr_pstrdup(mp, element->string), APR_HASH_KEY_STRING, \
-//                         APR_HASH_KEY_STRING, (char*) apr_ltoa(mp, keys_counter++));
-//                         apr_pmemdup(mp, (const void *) keys_counter, sizeof(long))
                            (long*) apr_pmemdup(mp, (const void *) &keys_counter, sizeof(keys_counter)));
         }
         keys_counter++;
         element = element->next;
     }
 
-    return 0;
 }
 
 int JSONp_SerializeRecord(apr_hash_t *dict,
                           cJSON *record,
                           JSONpEncoder encoder_type) {
-    int status_ret =  0;
+    int status =  0;
     switch(encoder_type) {
 
     case kJsonpASN1:
-        status_ret = JSONp_EncodeASN1(record, dict);
+        status = JSONp_ASN1Encode(record, dict);
         break;
     }
 
-    return status_ret;
+    return status;
+}
+
+int JSONp_cJSON_print(const cJSON * record) {
+
+    char* string ;
+    string = cJSON_Print(record);
+    if (string == NULL) {
+        fprintf(stderr, "Failed to print json.\n");
+        return JSONP_cJSON_PRINT_ERROR;
+    }
+    printf("\"%s\"\n", string);
+    return JSONP_SUCCESS;
+
 }
 
