@@ -119,7 +119,6 @@ enum ASN1_Tag {
 */
 int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* jsonp_args);
 
-
 /**
  * @struct Asn1Array
  * @brief An array structure to represent the `SEQUENCE OF` ASN1 tag.

@@ -15,7 +15,7 @@ static struct argp_option options[] = {
     {"encoder",  'e' , "encoder", 0,
         "Changes default file output name (optional)", 0},
     /*********************/
-    {0,0,0,0, "Output format",0},
+    {0,0,0,0, "Output formatting",0},
     /*********************/
     {"print-records",  'r' , NULL, 0,
         "Prints records in a compact JSON style", 0},

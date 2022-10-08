@@ -29,6 +29,12 @@ typedef enum {
 /* JSONp headers */
 #include <asn1.h>
 
+/**
+ * @defgroup JSONp_Definitions JSONp Definitions
+ *
+ * @{
+ */
+
 /* project version */
 #define JSONP_VERSION_MAJOR 1
 #define JSONP_VERSION_MINOR 0
@@ -46,6 +52,8 @@ typedef enum {
 #define MAX_LONG_INT_DIGITS 50
 #define _TO_STRING_(_NAME_) #_NAME_
 
+/** @} */
+
 /**
  * @brief Reads a JSON file and generates a binary encoding
  * @param jsonp_args Pointer to the program's options structure
@@ -59,12 +67,6 @@ int JSONp_Pack(JSONpArgs *jsonp_args);
  * @return int exit code
  */
 int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args);
-
-// Auxiliary functions
-
-/* TLV function
-   Process TLV encoding (expect Hash table and cJSON structure)
-   Serialize cJSON value along with hash  to two binary files */
 
 /**
  * @brief Prints the record encoding (encoded record and dictionary)
@@ -82,7 +84,7 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs *jsonp_
  */
 int JSONp_PrintDict(apr_hash_t *dict);
 
-void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp);
+void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp);
 
 int JSONp_SerializeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args);
 

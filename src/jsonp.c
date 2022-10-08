@@ -55,7 +55,7 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         /* Add current keys to dictionary */
         if (jsonp_args->one_dict)
             apr_hash_clear(dict);
-        JSONp_UpdateDictionary(dict, record, mp);
+        JSONp_UpdateDict(dict, record, mp);
 
         /* Print encoded records with keys */
         status = JSONp_PrintEncoding(dict, record, jsonp_args);
@@ -187,7 +187,7 @@ int JSONp_PrintDict (apr_hash_t *dict) {
 }
 
 
-void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
+void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
 
     /* Traverse json object */
     cJSON *element = record->child;
