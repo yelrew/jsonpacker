@@ -63,8 +63,10 @@ int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* js
 
     }
     /* Print binary array */
-    Asn1Array_Print(&encValue, "Encoded records in ASN.1 DER:\n");
-    Asn1Array_Print(&keyEnc, "Encoded keys in ASN.1 DER:\n");
+    if (jsonp_args->print_encodings) {
+        Asn1Array_Print(&encValue, "Encoded records in ASN.1 DER:\n");
+        Asn1Array_Print(&keyEnc, "Encoded keys in ASN.1 DER:\n");
+    }
 
     // TODO: Add log messages !!
     /* Write to file */
@@ -188,10 +190,7 @@ int Asn1Array_Print(Asn1Array* array, char* message) {
     fprintf (stdout, "----------------------\n Number of bytes=%d\n ", num_bytes_encoded);
     while (array_element != array->next)
       fprintf (stdout, "%02X ", *array_element++);
-    fputs ("\n----------------------\n", stdout);
-
-    fprintf(stdout, "\n");
-
+    fputs ("\n----------------------\n\n", stdout);
 
 }
 
