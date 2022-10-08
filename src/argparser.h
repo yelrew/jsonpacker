@@ -15,11 +15,14 @@
  */
 typedef struct {
   char *args[JSONP_ARGS_SIZE+5]; /* <JSON input file> */
-  char *outfile; /* Argument for -o */
-  char *infile; /* Input file with JSON records */
-  bool one_dict; /* Use a single dictionary for all records */
-  JSONpEncoder encoder;
-  char encoder_name[JSONP_MAX_ENCNAME_LENGTH]; /* maximum encoder name is 10 chars */
+  char *outfile; /**< Argument for -o */
+  char *infile; /**< Input file with JSON records */
+  bool one_dict; /**< Use a single dictionary for all records */
+  bool print_encodings; /**< Print binary encodings */
+  bool print_records; /**< Print records in compacted JSON style */
+  bool print_records_full ; /**< Print records in a full JSON style */
+  JSONpEncoder encoder; /**< Encoder type */
+  char encoder_name[JSONP_MAX_ENCNAME_LENGTH]; /**< maximum encoder name length */
 } JSONpArgs;
 
 /**
@@ -31,6 +34,9 @@ typedef struct {
  */
 void jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args);
 
+/**
+ *  Argp external parser
+*/
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
 
 #endif

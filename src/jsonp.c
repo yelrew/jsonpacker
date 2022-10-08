@@ -45,11 +45,11 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         assert ((record->string = malloc(MAX_LONG_INT_DIGITS)) != NULL);
         sprintf(record->string, "%d", ++record_num);
 
-        fprintf(stdout, "/**********************************\n");
+        fprintf(stdout, "/**********************************\n\n");
         fprintf(stdout, "Processing record %d ...\n\n", record_num);
 
         /* Print record */
-        status = JSONp_cJSON_print(record);
+        status = JSONp_cJSON_print(record, jsonp_args);
         if (status!= JSONP_SUCCESS) break;
 
         /* Add current keys to dictionary */
@@ -58,7 +58,7 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         JSONp_UpdateDictionary(dict, record, mp);
 
         /* Print encoded records with keys */
-        status = JSONp_PrintEncoding(dict, record);
+        status = JSONp_PrintEncoding(dict, record, jsonp_args);
         if (status!= JSONP_SUCCESS) break;
 
         /* Serializing current record */
@@ -76,13 +76,18 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
     return status;
 }
 
-int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record) {
+int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_args) {
+
+    if (!jsonp_args->print_records && !jsonp_args->print_records_full)
+        return JSONP_SUCCESS;
 
     cJSON *pair = record->child;
 
-    /* Print encoded records (Encoded key : value) */
+    /* Print encoded values (Numeric key : value) */
 
-    fprintf(stdout, "Encoded records:\n{\n");
+    fprintf(stdout, "Encoded records:\n{");
+    if (jsonp_args->print_records_full)
+        fprintf(stdout, "\n");
 
     while (pair != NULL) {
         const unsigned char* key = pair->string;
@@ -94,7 +99,9 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record) {
             return JSONP_APR_MISSING_KEY;
         }
 
-        fprintf(stdout, "\t%ld : ", *enc_key); /* encoded key (number) */
+        if (jsonp_args->print_records_full)
+            fprintf(stdout, "\t");
+        fprintf(stdout, " %ld : ", *enc_key); /* encoded key (number) */
         switch (pair->type & 0xFF) {
         case cJSON_Number:
             if (pair->valuedouble == (int) pair->valuedouble) {
@@ -117,16 +124,24 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record) {
             return JSONP_cJSON_INVALID_TYPE;
         }
 
-        if (pair->next) fprintf(stdout, ",\n");
+        if (pair->next) {
+            fprintf(stdout, ",");
+            if (jsonp_args->print_records_full)
+                fprintf(stdout, "\n");
+        }
         pair = pair->next;
     }
 
-    fprintf(stdout, "\n}\n");
+    if (jsonp_args->print_records_full)
+        fprintf(stdout, "\n");
+    fprintf(stdout, "}\n\n");
 
     /* Print keys encoding (Key : encoded key) */
 
     pair = record->child;
-    fprintf(stdout, "Keys encoding:\n{\n");
+    fprintf(stdout, "Keys encoding:\n{");
+    if (jsonp_args->print_records_full)
+        fprintf(stdout, "\n");
 
     while (pair != NULL) {
         const unsigned char* key = pair->string;
@@ -137,13 +152,21 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record) {
             fprintf(stderr, "The key \"%s\" does not exist.\n",  key);
             return JSONP_APR_MISSING_KEY;
         }
-        fprintf(stdout, "\t\"%s\" : %ld", key, *enc_key);
-        if (pair->next) fprintf(stdout, ",\n");
+        if (jsonp_args->print_records_full)
+            fprintf(stdout, "\t");
+        fprintf(stdout, "\"%s\" : %ld", key, *enc_key);
+        if (pair->next) {
+            fprintf(stdout, ", ");
+            if (jsonp_args->print_records_full)
+                fprintf(stdout, "\n");
+        }
 
         pair = pair->next;
     }
 
-    fprintf(stdout, "\n}\n\n");
+    if (jsonp_args->print_records_full)
+        fprintf(stdout, "\n");
+    fprintf(stdout, "}\n\n");
 
     return JSONP_SUCCESS;
 
@@ -198,15 +221,22 @@ int JSONp_SerializeRecord(apr_hash_t *dict,
     return status;
 }
 
-int JSONp_cJSON_print(const cJSON * record) {
+int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args) {
 
     char* string ;
-    string = cJSON_Print(record);
+    if (jsonp_args->print_records)
+        string = cJSON_PrintUnformatted(record);
+    else if (jsonp_args->print_records_full)
+        string = cJSON_Print(record);
+    else
+        return JSONP_SUCCESS;
+
     if (string == NULL) {
         fprintf(stderr, "Failed to print json.\n");
         return JSONP_cJSON_PRINT_ERROR;
     }
-    fprintf(stdout, "Input record:\n\"%s\"\n\n", string);
+    fprintf(stdout, "Input record:\n\"%s\"\n\n", string); /* Actual print goes here */
+
     return JSONP_SUCCESS;
 
 }

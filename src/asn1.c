@@ -63,8 +63,8 @@ int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* js
 
     }
     /* Print binary array */
-    Asn1Array_Print(&encValue, "ASN.1 (DER) encoded records\n");
-    Asn1Array_Print(&keyEnc, "ASN.1 (DER) encoded keys\n");
+    Asn1Array_Print(&encValue, "Encoded records in ASN.1 DER:\n");
+    Asn1Array_Print(&keyEnc, "Encoded keys in ASN.1 DER:\n");
 
     // TODO: Add log messages !!
     /* Write to file */
@@ -181,16 +181,16 @@ unsigned char SignedIntMinLength (int num) {
 
 int Asn1Array_Print(Asn1Array* array, char* message) {
 
-    fprintf(stdout, "%s\n", message);
+    fprintf(stdout, "%s", message);
     int num_bytes_encoded = array->next - array->data;
     unsigned char* array_element = array->data;
     /* Print DER encoding */
-    fprintf (stdout, "/***************/\nNumber of bytes=%d\n", num_bytes_encoded);
+    fprintf (stdout, "----------------------\n Number of bytes=%d\n ", num_bytes_encoded);
     while (array_element != array->next)
       fprintf (stdout, "%02X ", *array_element++);
-    fputs ("\n/***************/\n\n", stdout);
+    fputs ("\n----------------------\n", stdout);
 
-    fprintf(stdout, "");
+    fprintf(stdout, "\n");
 
 
 }

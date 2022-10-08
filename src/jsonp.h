@@ -48,16 +48,17 @@ typedef enum {
 
 /**
  * @brief Reads a JSON file and generates a binary encoding
- * @param filepath The JSON file to encode
+ * @param jsonp_args Pointer to the program's options structure
  */
 int JSONp_Pack(JSONpArgs *jsonp_args);
 
 /**
  * @brief Prints the JSON object which holds a single record
- * @param record The cJSON object
+ * @param record cJSON object containing the record
+ * @param jsonp_args Pointer to the program's options structure
  * @return int exit code
  */
-int JSONp_cJSON_print(const cJSON * record);
+int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args);
 
 // Auxiliary functions
 
@@ -69,9 +70,10 @@ int JSONp_cJSON_print(const cJSON * record);
  * @brief Prints the record encoding (encoded record and dictionary)
  * @param record The cJSON object containing a record
  * @param dict The ARP dictionary with the key-value (string-long) pairs
+ * @param jsonp_args Pointer to the program's options structure
  * @return int exit code
  */
-int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record);
+int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs *jsonp_args);
 
 /**
  * @brief Prints the full dict

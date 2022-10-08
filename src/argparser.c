@@ -4,15 +4,28 @@
 /* Command-line arguments */
 static char args_doc[] = "<JSON file>";
 
-static struct argp_option options[] =
-{
-  {"encoder",  'e' , "encoder", 0,
-   "Changes default file output name (optional)"},
-  {"output",  'o' , "outfile", 0,
-   "Changes default file output name (optional)"},
-  {"one-dict",  'd' , NULL , OPTION_ARG_OPTIONAL,
-   "Use a single dicionary for all records (optional)"},
-  {0}
+static struct argp_option options[] = {
+    /*******/
+    {"one-dict",  'd' , NULL , 0,
+        "Use a single dicionary for all records (optional)", 0},
+    /*******/
+    {"output",  'o' , "outfile", 0,
+        "Changes default file output name (optional)", 0},
+    /*******/
+    {"encoder",  'e' , "encoder", 0,
+        "Changes default file output name (optional)", 0},
+    /*********************/
+    {0,0,0,0, "Output format",0},
+    /*********************/
+    {"print-records",  'r' , NULL, 0,
+        "Prints records in a compact JSON style", 0},
+    /*******/
+    {"print-full-records",  'R' , NULL, 0,
+        "Prints records in a full JSON style", 0},
+    /*******/
+    {"print-encondings",  'b' , NULL, 0,
+        "Prints the encondings' byte arrays", 0},
+    {0}
 };
 
 static char doc[] =
@@ -32,6 +45,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 {
     JSONpArgs *arguments = state->input;
     switch (key) {
+    case 'b':
+        arguments->print_encodings = true;
+        break;
+    case 'd':
+        arguments->one_dict = true;
+        break;
     case 'e':
         /* Retrieving encoder enum name */
         assert(strlen(arg) < JSONP_MAX_ENCNAME_LENGTH);
@@ -47,8 +66,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'o':
         arguments->outfile = arg;
         break;
-    case 'd':
-        arguments->one_dict = true;
+    case 'r':
+        arguments->print_records = true;
+        break;
+    case 'R':
+        arguments->print_records_full = true;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num >= 1)
@@ -73,6 +95,9 @@ void jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
     jsonp_args->outfile = NULL;
     jsonp_args->encoder = JpASN1;
     jsonp_args->one_dict = false;
+    jsonp_args->print_encodings = false;
+    jsonp_args->print_records = false;
+    jsonp_args->print_records_full = false;
     strcpy(jsonp_args->encoder_name, "JpASN1");
 
     char argp_program_version_full[80];
