@@ -41,6 +41,7 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
             return JSONP_cJSON_SYNTAX_ERROR;
         }
 
+        fprintf(stdout, "/**********************************\n");
         fprintf(stdout, "Processing record %d ...\n\n", ++num_records);
 
         /* Print record */

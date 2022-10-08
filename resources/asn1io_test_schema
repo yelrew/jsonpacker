@@ -4,11 +4,14 @@ test EncValue ::= {
     value str "value"
   },
    {
+    enc 2,
+    value int 42
+  },
+   {
     enc 3,
     value bool TRUE
   }
 }
-
 
 
 test KeyEnc ::= {
@@ -25,4 +28,41 @@ test KeyEnc ::= {
     enc 3
   }
 }
+
+
+test2 EncValue ::= {
+   {
+    enc 4,
+    value str "dsewtew"
+  },
+   {
+    enc 5,
+    value int 3221
+  },
+   {
+    enc 6,
+    value str "dsfewew"
+  }
+}
+
+test2 KeyEnc ::= {
+   {
+    key "sadsf",
+    enc 4
+  },
+   {
+    key "dsre",
+    enc 5
+  },
+   {
+    key "sdfds",
+    enc 6
+  }
+}
+
+
+
+
+                                    
+
  

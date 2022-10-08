@@ -138,7 +138,18 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
     assert(array->size - (array->next - array->data) -1 > num_bytes);
     memcpy((void*) array->next++, (void*) &tag, 1);
     memcpy((void*) array->next++, (void*) &length, 1);
-    memcpy((void*) array->next, value, length);
+
+    if (type != ASN1_TYPE_INTEGER)
+        memcpy((void*) array->next, value, length);
+    else {
+        /* Write big endian */
+        unsigned char* byte = value;
+        unsigned char* pt = array->next + length - 1;
+        while (pt != array->next - 1) {
+            memcpy((void*) pt--, byte++, 1);
+        }
+
+    }
     array->next += length;
     return 0;
 
