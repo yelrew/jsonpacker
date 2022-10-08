@@ -85,7 +85,7 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_
 
     /* Print encoded values (Numeric key : value) */
 
-    fprintf(stdout, "Encoded records:\n{");
+    fprintf(stdout, " Encoded values:\n\n {");
     if (jsonp_args->print_records_full)
         fprintf(stdout, "\n");
 
@@ -139,7 +139,7 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_
     /* Print keys encoding (Key : encoded key) */
 
     pair = record->child;
-    fprintf(stdout, "Keys encoding:\n{");
+    fprintf(stdout, " Keys encoding:\n\n {");
     if (jsonp_args->print_records_full)
         fprintf(stdout, "\n");
 
@@ -235,7 +235,7 @@ int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args) {
         fprintf(stderr, "Failed to print json.\n");
         return JSONP_cJSON_PRINT_ERROR;
     }
-    fprintf(stdout, "Input record:\n\"%s\"\n\n", string); /* Actual print goes here */
+    fprintf(stdout, "%s\n\n", string); /* Actual print goes here */
 
     return JSONP_SUCCESS;
 
