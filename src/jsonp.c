@@ -41,7 +41,7 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
             return JSONP_cJSON_SYNTAX_ERROR;
         }
 
-        /* Set top-level record string (Will go deallocated by cJSON_Delete) */
+        /* Set top-level record string (will go deallocated after cJSON_Delete) */
         assert ((record->string = malloc(MAX_LONG_INT_DIGITS)) != NULL);
         sprintf(record->string, "%d", ++record_num);
 
@@ -53,6 +53,8 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         if (status!= JSONP_SUCCESS) break;
 
         /* Add current keys to dictionary */
+        if (jsonp_args->one_dict)
+            apr_hash_clear(dict);
         JSONp_UpdateDictionary(dict, record, mp);
 
         /* Print encoded records with keys */
@@ -64,15 +66,6 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         if (status != JSONP_SUCCESS) break;
 
         cJSON_Delete(record);
-
-
-//        /* get the value from a key */
-//       {
-//           const int *val = apr_hash_get(ht, "key3", APR_HASH_KEY_STRING);
-//           printf("val for \"key1\" is %d\n", *val);
-//       }
-
-
     }
 
     /* The hash table is automatically destroyed after @mp */
@@ -159,7 +152,6 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record) {
 int JSONp_PrintDict (apr_hash_t *dict) {
 
     apr_hash_index_t *dict_element = apr_hash_first(NULL, dict);
-
     while (dict_element) {
         const long *value;
         const char *key;
@@ -172,21 +164,19 @@ int JSONp_PrintDict (apr_hash_t *dict) {
 }
 
 
-
 void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
 
-    static long keys_counter = 1;
-    /* Traverse json structure */
+    /* Traverse json object */
     cJSON *element = record->child;
     while (element != NULL) {
         if (apr_hash_get (dict,  (const void*) element->string,
                           APR_HASH_KEY_STRING) == NULL)
             {
+                unsigned int key_number = apr_hash_count(dict) + 1;
                 apr_hash_set(dict, apr_pstrdup(mp, element->string), APR_HASH_KEY_STRING, \
-                             (long*) apr_pmemdup(mp, (const void *) &keys_counter,
-                             sizeof(keys_counter)));
+                             (long*) apr_pmemdup(mp, (const void *) &key_number,
+                             sizeof(key_number)));
             }
-        keys_counter++;
         element = element->next;
     }
 

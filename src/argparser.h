@@ -10,16 +10,26 @@
 
 #define JSONP_ARGS_SIZE 1
 
+/**
+ * A strucutre to store JSONp command-line arguments
+ */
 typedef struct {
-  char *args[JSONP_ARGS_SIZE]; /* <JSON input file> */
+  char *args[JSONP_ARGS_SIZE+5]; /* <JSON input file> */
   char *outfile; /* Argument for -o */
   char *infile; /* Input file with JSON records */
+  bool one_dict; /* Use a single dictionary for all records */
   JSONpEncoder encoder;
   char encoder_name[JSONP_MAX_ENCNAME_LENGTH]; /* maximum encoder name is 10 chars */
 } JSONpArgs;
 
-
-int jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args);
+/**
+ * @brief Parse the command-line arguments *
+ * @param argc Arguments count
+ * @param argv Arguments' string array
+ * @param jsonp_args JSONp structure that controls the program options
+ * @return void
+ */
+void jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args);
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
 

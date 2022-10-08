@@ -6,10 +6,12 @@ static char args_doc[] = "<JSON file>";
 
 static struct argp_option options[] =
 {
-  {"encoder",  'e' , "encoder", OPTION_ARG_OPTIONAL,
+  {"encoder",  'e' , "encoder", 0,
    "Changes default file output name (optional)"},
-  {"output",  'o' , "outfile", OPTION_ARG_OPTIONAL,
+  {"output",  'o' , "outfile", 0,
    "Changes default file output name (optional)"},
+  {"one-dict",  'd' , NULL , OPTION_ARG_OPTIONAL,
+   "Use a single dicionary for all records (optional)"},
   {0}
 };
 
@@ -31,6 +33,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     JSONpArgs *arguments = state->input;
     switch (key) {
     case 'e':
+        /* Retrieving encoder enum name */
         assert(strlen(arg) < JSONP_MAX_ENCNAME_LENGTH);
         strncpy(arguments->encoder_name, arg, JSONP_MAX_ENCNAME_LENGTH - 1);
         arguments->encoder_name[JSONP_MAX_ENCNAME_LENGTH - 1] = '\0';
@@ -43,6 +46,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         break;
     case 'o':
         arguments->outfile = arg;
+        break;
+    case 'd':
+        arguments->one_dict = true;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num >= 1)
@@ -60,12 +66,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
     return 0;
 }
 
-int jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
+void jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
 
     /* Set argument defaults */
-    // FILE *outstream;
+
     jsonp_args->outfile = NULL;
     jsonp_args->encoder = JpASN1;
+    jsonp_args->one_dict = false;
+    strcpy(jsonp_args->encoder_name, "JpASN1");
 
     char argp_program_version_full[80];
     sprintf(argp_program_version_full, \
@@ -73,15 +81,6 @@ int jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
             JSONP_VERSION_MAJOR, JSONP_VERSION_MINOR);
     argp_program_version = argp_program_version_full;
 
-    /* Where the magic happens */
     argp_parse (&argp, *argc, argv, 0, 0, jsonp_args);
-
-    /* Where do we send output? */
-//    if (arguments.outfile)
-//        outstream = fopen (arguments.outfile, "w");
-//    else
-//        outstream = stdout;
-
-    return 0;
 
 }
