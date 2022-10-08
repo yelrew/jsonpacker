@@ -47,10 +47,10 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         status = JSONp_cJSON_print(record);
         if (status!= JSONP_SUCCESS) break;
 
-        /* Update Dictionary based on the record keys */
+        /* Add current keys to dictionary */
         JSONp_UpdateDictionary(dict, record, mp);
 
-        /* Print encoded records with keys  */
+        /* Print encoded records with keys */
         status = JSONp_PrintEncoding(dict, record);
         if (status!= JSONP_SUCCESS) break;
 

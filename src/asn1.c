@@ -9,8 +9,6 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
     Asn1Array encrValue, keyEncr;
     Asn1Array_Init(&encrValue);
     Asn1Array_Init(&keyEncr);
-
-
     cJSON *element = record->child;
 
     while (element != NULL) {
@@ -76,32 +74,6 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
 
 }
 
-int Asn1Array_Init(Asn1Array* array) {
-
-    enum ASN1_Class array_class;
-    enum ASN1_Tag array_tag;
-
-    array_class = ASN1_CLASS_UNIVERSAL;
-    array_class |= ASN1_CLASS_STRUCTURED;
-    array_tag = array_class | ASN1_TAG_SEQUENCE_OF;
-
-    /* Tries to allocate array memory (default ASN1_ARRAY_BLOCK_SIZE bytes) */
-    array->data = malloc(ASN1_ARRAY_BLOCK_SIZE);
-    array->next = array->data;
-    if (array->data == NULL) {
-        printf("Error: couldn't allocate memory to array\n");
-        return JSONP_ASN1_MEM_ERROR;
-    }
-    array->size = ASN1_ARRAY_BLOCK_SIZE;
-
-    memcpy((void*) array->next++, (void*) &array_tag, 1); /* append tag identifier */
-    array->next++; /* reserve 1 BYTE for length */
-
-    return JSONP_ASN1_SUCCESS;
-
-}
-
-
 /* Appends a pair to an ASN1 array */
 
 int Asn1Array_AppendPair(Asn1Array* array, \
@@ -147,8 +119,8 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
     switch (type) {
     case ASN1_TYPE_INTEGER:
         tag = element_class | ASN1_TAG_INTEGER;
-        length = 1; //sizeof(long);
-        // Reducing integer here
+        /* Number of significant bytes of the integer */
+        length = SignedIntMinLength(*((int*) value));
         break;
     case ASN1_TYPE_BOOLEAN:
         tag = element_class | ASN1_TAG_BOOLEAN;
@@ -172,10 +144,25 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
 
 }
 
-int Asn1Array_Clear(Asn1Array* array) {
-    free(array->data);
-}
+unsigned char SignedIntMinLength (int num) {
 
+    int sign_bit, first_oct_msk, second_oct_b8_msk, nbytes;
+    int szint = JSONP_INT_SIZE;
+
+    sign_bit = ((num & (0x1 << (szint*8-1)) ) >> (szint*8-1)) & 1; /* 64 bit? */
+    first_oct_msk = 0xff << ((szint-1)*8); /* 0xff000000 */
+    second_oct_b8_msk = 0x80 << ((szint-2)*8); /* 0x00800000 */
+    nbytes = szint;
+
+    while (nbytes > 1 && ((num & first_oct_msk) == first_oct_msk*sign_bit) && \
+           ((num & second_oct_b8_msk) == second_oct_b8_msk*sign_bit))
+    {
+        first_oct_msk >>= 8;
+        second_oct_b8_msk >>= 8;
+        nbytes -= 1;
+    }
+    return nbytes;
+}
 
 int Asn1Array_Print(Asn1Array* array, char* message) {
 
@@ -191,4 +178,33 @@ int Asn1Array_Print(Asn1Array* array, char* message) {
     fprintf(stdout, "");
 
 
+}
+
+int Asn1Array_Init(Asn1Array* array) {
+
+    enum ASN1_Class array_class;
+    enum ASN1_Tag array_tag;
+
+    array_class = ASN1_CLASS_UNIVERSAL;
+    array_class |= ASN1_CLASS_STRUCTURED;
+    array_tag = array_class | ASN1_TAG_SEQUENCE_OF;
+
+    /* Tries to allocate array memory (default ASN1_ARRAY_BLOCK_SIZE bytes) */
+    array->data = malloc(ASN1_ARRAY_BLOCK_SIZE);
+    array->next = array->data;
+    if (array->data == NULL) {
+        printf("Error: couldn't allocate memory to array\n");
+        return JSONP_ASN1_MEM_ERROR;
+    }
+    array->size = ASN1_ARRAY_BLOCK_SIZE;
+
+    memcpy((void*) array->next++, (void*) &array_tag, 1); /* append tag identifier */
+    array->next++; /* reserve 1 BYTE for length */
+
+    return JSONP_ASN1_SUCCESS;
+
+}
+
+int Asn1Array_Clear(Asn1Array* array) {
+    free(array->data);
 }

@@ -42,7 +42,7 @@ typedef enum {
 #define JSONP_cJSON_INVALID_TYPE   5 /**< JSON object not handled */
 #define JSONP_APR_MISSING_KEY      6
 
-
+#define JSONP_INT_SIZE 4
 #define _TO_STRING_(_NAME_) #_NAME_
 
 /**

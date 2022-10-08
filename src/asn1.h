@@ -187,5 +187,13 @@ int Asn1Array_AppendPair(Asn1Array* array, \
                         enum ASN1_Type first_type, void* first_value, \
                         enum ASN1_Type second_type, void* second_value);
 
+/**
+ * Return the minimum number of bytes needed to represent a signed integer
+ *
+ * @param number Signed integer
+ * @return minimum number of bytes to represet the number
+ */
+unsigned char SignedIntMinLength(int number);
+
 
 #endif
