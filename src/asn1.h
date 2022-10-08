@@ -15,7 +15,8 @@
  */
 
 #define JSONP_ASN1_SUCCESS           0 /**< ASN1 Encoding sucess */
-#define JSONP_ASN1_MEM_ERROR         1
+#define JSONP_ASN1_MEM_ERROR         101
+#define JSONP_ASN1_FILE_WRITE_ERROR  102
 //#define ASN1_ELEMENT_NOT_FOUND     2
 //#define ASN1_IDENTIFIER_NOT_FOUND  3
 //#define ASN1_DER_ERROR             4
@@ -100,6 +101,7 @@ enum ASN1_Tag {
  * @param record JSON object (key value pairs)
  * @param dict  Dictionary (hash table) where the entries are the keys
  *              and the values are the encrypted keys
+ * @param jsonp_args JSONp command-line arguments
  * @return int return status
  * @remarks When enconding the dictionary, only the elements present in the
  *          dictionary are encoded, as the dicionary may contain elements
@@ -115,12 +117,12 @@ enum ASN1_Tag {
      }
 
 */
-int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict);
+int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* jsonp_args);
 
 
 /**
  * @struct Asn1Array
- * @brief An array structure representing the `SEQUENCE OF` ASN1 tag.
+ * @brief An array structure to represent the `SEQUENCE OF` ASN1 tag.
  *
  * Asn1Array stores the contents of a `SEQUENCE OF` tag as a char array.
  * The buffer size and the next available position are also stored.
@@ -128,6 +130,7 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict);
 typedef struct {
     unsigned char *data; /*!< Der encoding of the container */
     unsigned char *next; /*!< points to next available space in data */
+    unsigned char *name; /*!< array internal name */
     size_t size; /*!< array size in bytes */
 } Asn1Array;
 
@@ -136,9 +139,13 @@ typedef struct {
  * Initializes the struct Asn1Array
  *
  * @param array Asn1Array array
+ * @param name Optional name to assign to the array (NULL if none)
+ * @param tag Optional tag to assign to the array (NULL if none)
  * @return status Initialization results
+ *
+ * @note The string name followed '-' and the tag defines the array's suffix,
  */
-int Asn1Array_Init(Asn1Array* array);
+int Asn1Array_Init(Asn1Array* array, unsigned char *name, unsigned char *tag);
 
 /**
  * Asn1Array_Clear
@@ -194,6 +201,8 @@ int Asn1Array_AppendPair(Asn1Array* array, \
  * @return minimum number of bytes to represet the number
  */
 unsigned char SignedIntMinLength(int number);
+
+int Asn1Array_WriteToFile (Asn1Array* array, JSONpArgs *jsonp_args);
 
 
 #endif

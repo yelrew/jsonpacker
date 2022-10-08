@@ -25,13 +25,13 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
 
     /* Parse records */
 
-    char *record_str = NULL;
+    char *line = NULL;
     size_t len = 0;
-    size_t num_records = 0;
+    size_t record_num = 0;
 
-    while(getline(&record_str, &len, fp) != -1) {
+    while(getline(&line, &len, fp) != -1) {
 
-        cJSON *record = cJSON_Parse(record_str);
+        cJSON *record = cJSON_Parse(line);
         if (record == NULL) {
             const char *error_ptr = cJSON_GetErrorPtr();
             if (error_ptr != NULL) {
@@ -41,8 +41,12 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
             return JSONP_cJSON_SYNTAX_ERROR;
         }
 
+        /* Set top-level record string (Will go deallocated by cJSON_Delete) */
+        assert ((record->string = malloc(MAX_LONG_INT_DIGITS)) != NULL);
+        sprintf(record->string, "%d", ++record_num);
+
         fprintf(stdout, "/**********************************\n");
-        fprintf(stdout, "Processing record %d ...\n\n", ++num_records);
+        fprintf(stdout, "Processing record %d ...\n\n", record_num);
 
         /* Print record */
         status = JSONp_cJSON_print(record);
@@ -58,6 +62,8 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
         /* Serializing current record */
         status = JSONp_SerializeRecord(dict, record, jsonp_args);
         if (status != JSONP_SUCCESS) break;
+
+        cJSON_Delete(record);
 
 
 //        /* get the value from a key */
@@ -192,10 +198,10 @@ int JSONp_SerializeRecord(apr_hash_t *dict,
     int status = 0;
     switch(jsonp_args->encoder) {
     case JpASN1:
-        status = JSONp_ASN1Encode(record, dict);
+        status = JSONp_ASN1EncodeRecord(record, dict, jsonp_args);
         break;
     default:
-        fprintf(stderr, "Error: unknow encoder type \"%s\"\n",jsonp_args->encoder_name);
+        fprintf(stderr, "Error: unknow encoder type \"%s\"\n", jsonp_args->encoder_name);
         status = JSONP_MISSING_ENCODER;
         break;
     }

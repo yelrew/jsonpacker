@@ -2,13 +2,13 @@
 
 #include <asn1.h>
 
-int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
+int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* jsonp_args) {
 
     /* Traverse json structure */
 
-    Asn1Array encrValue, keyEncr;
-    Asn1Array_Init(&encrValue);
-    Asn1Array_Init(&keyEncr);
+    Asn1Array encValue, keyEnc;
+    Asn1Array_Init(&encValue, "values", record->string);
+    Asn1Array_Init(&keyEnc, "keys", record->string);
     cJSON *element = record->child;
 
     while (element != NULL) {
@@ -50,12 +50,12 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
         }
 
         /* Encoding Records */
-        Asn1Array_AppendPair(&encrValue,
+        Asn1Array_AppendPair(&encValue,
                              ASN1_TYPE_INTEGER, encrypted_key, /* encrypted key */
                              type, value); /* record value */
 
         /* Encoding Dictionary */
-        Asn1Array_AppendPair(&keyEncr,
+        Asn1Array_AppendPair(&keyEnc,
                              ASN1_TYPE_UTF8_STRING, key, /* original key */
                              ASN1_TYPE_INTEGER, encrypted_key); /* encrypted key */
 
@@ -63,12 +63,17 @@ int JSONp_ASN1Encode(const cJSON * record, apr_hash_t *dict) {
 
     }
     /* Print binary array */
-    Asn1Array_Print(&encrValue, "ASN.1 (DER) encoded records\n");
-    Asn1Array_Print(&keyEncr, "ASN.1 (DER) encoded keys\n");
+    Asn1Array_Print(&encValue, "ASN.1 (DER) encoded records\n");
+    Asn1Array_Print(&keyEnc, "ASN.1 (DER) encoded keys\n");
+
+    // TODO: Add log messages !!
+    /* Write to file */
+    Asn1Array_WriteToFile(&encValue, jsonp_args);
+    Asn1Array_WriteToFile(&keyEnc, jsonp_args);
 
     // free(derEncrkeyValuePairs);
-    Asn1Array_Clear(&encrValue);
-    Asn1Array_Clear(&keyEncr);
+    Asn1Array_Clear(&encValue);
+    Asn1Array_Clear(&keyEnc);
 
     return 0;
 
@@ -148,7 +153,6 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
         while (pt != array->next - 1) {
             memcpy((void*) pt--, byte++, 1);
         }
-
     }
     array->next += length;
     return 0;
@@ -191,7 +195,7 @@ int Asn1Array_Print(Asn1Array* array, char* message) {
 
 }
 
-int Asn1Array_Init(Asn1Array* array) {
+int Asn1Array_Init(Asn1Array* array, unsigned char* name, unsigned char* tag) {
 
     enum ASN1_Class array_class;
     enum ASN1_Tag array_tag;
@@ -199,6 +203,13 @@ int Asn1Array_Init(Asn1Array* array) {
     array_class = ASN1_CLASS_UNIVERSAL;
     array_class |= ASN1_CLASS_STRUCTURED;
     array_tag = array_class | ASN1_TAG_SEQUENCE_OF;
+
+    array->name = malloc( strlen(name) + strlen("-") + strlen(tag) + 1);
+    assert (array->name != NULL);
+    array->name[0] = '\0';
+    strcat(array->name, name);
+    strcat(array->name, "-");
+    strcat(array->name, tag);
 
     /* Tries to allocate array memory (default ASN1_ARRAY_BLOCK_SIZE bytes) */
     array->data = malloc(ASN1_ARRAY_BLOCK_SIZE);
@@ -216,6 +227,57 @@ int Asn1Array_Init(Asn1Array* array) {
 
 }
 
+int Asn1Array_WriteToFile (Asn1Array* array, JSONpArgs* jsonp_args) {
+
+    FILE *outputFile;
+    static const char *outfile_extension = "der";
+
+    // TODO: Test outputFileName == NULL (command line default)
+    jsonp_args->outfile = malloc(strlen (jsonp_args->infile) + \
+                                 strlen ("-") + \
+                                 strlen (array->name) + \
+                                 strlen (".") + \
+                                 strlen(outfile_extension) + 1);
+
+    if (jsonp_args->outfile == NULL) {
+        printf("Error: couldn't allocate memory\n");
+        return JSONP_ASN1_MEM_ERROR;
+    }
+    strcpy (jsonp_args->outfile, jsonp_args->infile);
+    if (strrchr(jsonp_args->outfile, '.') != NULL)
+        *strrchr (jsonp_args->outfile, '.') = '\0';
+
+    strcat(jsonp_args->outfile, "-");
+    strcat(jsonp_args->outfile, array->name);
+    strcat(jsonp_args->outfile, ".");
+    strcat(jsonp_args->outfile, outfile_extension);
+
+    /* send to log what I am doing ! -> printf (stderr, "\nOutputFile=%s\n", outputFileName); */
+
+    outputFile = fopen (jsonp_args->outfile, "w");
+    if (outputFile == NULL) {
+        fprintf (stderr,
+                 "Asn1Array_WriteToFile: can\'t write to file '%s'\n",
+                 jsonp_args->outfile);
+        return JSONP_ASN1_FILE_WRITE_ERROR;
+    }
+
+    unsigned char* array_element = array->data;
+
+    /* Print ASN.1 DER encoding */
+    while (array_element != array->next)
+        fprintf (outputFile, "%02X ", *array_element++);
+
+    fclose (outputFile);
+    fprintf(stdout, "Sucessfully wrote file \"%s\".\n\n", jsonp_args->outfile);
+    free (jsonp_args->outfile);
+
+    return JSONP_ASN1_SUCCESS;
+
+}
+
 int Asn1Array_Clear(Asn1Array* array) {
+
     free(array->data);
+    free(array->name);
 }

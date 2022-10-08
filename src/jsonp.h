@@ -35,7 +35,7 @@ typedef enum {
 
 /* Exit codes */
 #define JSONP_SUCCESS              0 /**< Success! */
-#define JSONP_FILE_OPEN_ERROR      1 /**< Probllem when opening file */
+#define JSONP_FILE_OPEN_ERROR      1 /**< Problem when opening file */
 #define JSONP_MISSING_ENCODER      2 /**< Encoder not implemented */
 #define JSONP_cJSON_SYNTAX_ERROR   3
 #define JSONP_cJSON_PRINT_ERROR    4
@@ -43,6 +43,7 @@ typedef enum {
 #define JSONP_APR_MISSING_KEY      6
 
 #define JSONP_INT_SIZE 4
+#define MAX_LONG_INT_DIGITS 50
 #define _TO_STRING_(_NAME_) #_NAME_
 
 /**
@@ -82,7 +83,5 @@ int JSONp_PrintDict(apr_hash_t *dict);
 void JSONp_UpdateDictionary (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp);
 
 int JSONp_SerializeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args);
-
-int JSONp_EncodeASN1(apr_hash_t *dict, const cJSON * record);
 
 #endif // JSON_PACKER_H
