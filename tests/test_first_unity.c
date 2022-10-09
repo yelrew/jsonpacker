@@ -9,13 +9,13 @@ int8_t AverageThreeBytes(int8_t a, int8_t b, int8_t c)
 
 void test_AverageThreeBytes_should_AverageHighValues()
 {
-    TEST_ASSERT_EQUAL_HEX8(80, AverageThreeBytes(50, 80, 90));
+    TEST_ASSERT_EQUAL_HEX8(80, AverageThreeBytes(70, 80, 90));
     TEST_ASSERT_EQUAL_HEX8(127, AverageThreeBytes(127, 127, 127));
     TEST_ASSERT_EQUAL_HEX8(84, AverageThreeBytes(0, 126, 126));
 }
 
-void setUp(void) {}
-void tearDown(void) {}
+//void setUp(void) {}
+//void tearDown(void) {}
 
 int test_first_unity() {
 
