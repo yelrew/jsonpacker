@@ -27,45 +27,15 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
 
     char *line = NULL;
     size_t len = 0;
-    size_t record_num = 0;
 
     while(getline(&line, &len, fp) != -1) {
 
         cJSON *record = cJSON_Parse(line);
-        if (record == NULL) {
-            const char *error_ptr = cJSON_GetErrorPtr();
-            if (error_ptr != NULL) {
-                fprintf(stderr, "JSON Syntax Error before: %s\n", error_ptr);
-            }
-            cJSON_Delete(record);
-            return JSONP_cJSON_SYNTAX_ERROR;
-        }
-
-        /* Set top-level record string (will go deallocated after cJSON_Delete) */
-        assert ((record->string = malloc(MAX_LONG_INT_DIGITS)) != NULL);
-        sprintf(record->string, "%d", ++record_num);
-
-        fprintf(stdout, "/**********************************\n\n");
-        fprintf(stdout, "Processing record %d ...\n\n", record_num);
-
-        /* Print record */
-        status = JSONp_cJSON_print(record, jsonp_args);
-        if (status!= JSONP_SUCCESS) break;
-
-        /* Add current keys to dictionary */
-        if (jsonp_args->one_dict)
-            apr_hash_clear(dict);
-        JSONp_UpdateDict(dict, record, mp);
-
-        /* Print encoded records with keys */
-        status = JSONp_PrintEncoding(dict, record, jsonp_args);
-        if (status!= JSONP_SUCCESS) break;
-
-        /* Serializing current record */
-        status = JSONp_SerializeRecord(dict, record, jsonp_args);
-        if (status != JSONP_SUCCESS) break;
+         /* Processing current record */
+        status = JSONp_ProcessRecord(record, dict, jsonp_args, mp);
 
         cJSON_Delete(record);
+        if (status != JSONP_SUCCESS) break;
     }
 
     /* The hash table is automatically destroyed after @mp */
@@ -75,6 +45,98 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
 
     return status;
 }
+
+
+int JSONp_ProcessRecord(cJSON *record, apr_hash_t *dict,
+                        JSONpArgs* jsonp_args, apr_pool_t *mp) {
+    int status = 0;
+    size_t record_num = 0;
+
+    if (record == NULL) {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL) {
+            fprintf(stderr, "JSON Syntax Error before: %s\n", error_ptr);
+        }
+        cJSON_Delete(record);
+        return JSONP_cJSON_SYNTAX_ERROR;
+    }
+
+    /* Set top-level record string (will go deallocated after cJSON_Delete) */
+    assert ((record->string = malloc(MAX_LONG_INT_DIGITS)) != NULL);
+    sprintf(record->string, "%d", ++record_num);
+
+    /* Print tasks */
+    fprintf(stdout, "/**********************************\n\n");
+    fprintf(stdout, "Processing record %d ...\n\n", record_num);
+    status = JSONp_cJSON_print(record, jsonp_args);
+    if (status!= JSONP_SUCCESS)
+        return status;
+
+    /* Add current keys to dictionary */
+    JSONp_UpdateDict(dict, record, jsonp_args, mp);
+
+    /* Print numeric keys/values and keys/numeric keys */
+    status = JSONp_PrintEncoding(dict, record, jsonp_args);
+    if (status!= JSONP_SUCCESS)
+        return status;
+
+    /* Generate Binary Encoding */
+    status = JSONp_EncodeRecord(dict, record, jsonp_args, NULL, NULL);
+
+    return status;
+}
+
+
+int JSONp_EncodeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args,
+                       Asn1Array *encValue, Asn1Array *keyEnc) {
+
+    int ret_status = 0;
+
+    /* Initializing Asn1Arrays */
+    bool free_encValue = false;
+    bool free_keyEnc = false;
+    if (encValue == NULL) {
+        encValue = malloc (sizeof(Asn1Array));
+        free_encValue = true;
+    }
+    if (keyEnc == NULL) {
+        keyEnc = malloc (sizeof(Asn1Array));
+        free_keyEnc = true;
+    }
+    Asn1Array_Init(encValue, "values", record->string);
+    Asn1Array_Init(keyEnc, "keys", record->string);
+
+    /* Calling binary encoder */
+    switch(jsonp_args->encoder) {
+    case JpASN1:
+        ret_status = JSONp_ASN1EncodeRecord(record, dict, jsonp_args, encValue, keyEnc);
+        break;
+    default:
+        fprintf(stderr, "Error: unknow encoder type \"%s\"\n", jsonp_args->encoder_name);
+        ret_status = JSONP_MISSING_ENCODER;
+        break;
+    }
+
+    if (ret_status == JSONP_ASN1_SUCCESS) {
+        /* Print binary array */
+        if (jsonp_args->print_encodings) {
+            Asn1Array_Print(encValue, " Encoded records in ASN.1 DER:\n");
+            Asn1Array_Print(keyEnc, " Encoded keys in ASN.1 DER:\n");
+        }
+        /* Write to file */
+        Asn1Array_WriteToFile(encValue, jsonp_args);
+        Asn1Array_WriteToFile(keyEnc, jsonp_args);
+    }
+
+    Asn1Array_Clear(encValue);
+    Asn1Array_Clear(keyEnc);
+    if (free_keyEnc)
+        free(keyEnc);
+    if (free_encValue)
+        free(encValue);
+    return ret_status;
+}
+
 
 int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_args) {
 
@@ -90,8 +152,12 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_
         fprintf(stdout, "\n");
 
     while (pair != NULL) {
-        const unsigned char* key = pair->string;
-        const long *enc_key = apr_hash_get (dict,  (const void*) key, APR_HASH_KEY_STRING);
+        const unsigned char* key;
+        const long *enc_key;
+        const char *value;
+
+        key = pair->string;
+        enc_key = apr_hash_get (dict,  (const void*) key, APR_HASH_KEY_STRING);
 
         if (enc_key == NULL) {
             fprintf (stderr, "Error when printing dicionary\n.");
@@ -99,30 +165,10 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_
             return JSONP_APR_MISSING_KEY;
         }
 
+        value =  cJSON_Print(pair);
         if (jsonp_args->print_records_full)
             fprintf(stdout, "\t");
-        fprintf(stdout, " %ld : ", *enc_key); /* encoded key (number) */
-        switch (pair->type & 0xFF) {
-        case cJSON_Number:
-            if (pair->valuedouble == (int) pair->valuedouble) {
-                fprintf(stdout,  "%d", pair->valueint);
-            } else {
-                fprintf(stdout,  "%g", pair->valuedouble);
-            }
-            break;
-        case cJSON_True:
-            fprintf(stdout,  "true");
-            break;
-        case cJSON_False:
-            fprintf(stdout,  "false");
-            break;
-        case cJSON_String:
-            fprintf(stdout,  "\"%s\"", pair->valuestring);
-            break;
-        default:
-            fprintf (stderr, "Error: Invalid JSON type detected!\n");
-            return JSONP_cJSON_INVALID_TYPE;
-        }
+        fprintf(stdout, " %ld : %s", *enc_key, value); /* encoded key (number) : value */
 
         if (pair->next) {
             fprintf(stdout, ",");
@@ -135,6 +181,7 @@ int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs* jsonp_
     if (jsonp_args->print_records_full)
         fprintf(stdout, "\n");
     fprintf(stdout, "}\n\n");
+
 
     /* Print keys encoding (Key : encoded key) */
 
@@ -186,8 +233,11 @@ int JSONp_PrintDict (apr_hash_t *dict) {
 
 }
 
+void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record,
+                       JSONpArgs* jsonp_args, apr_pool_t *mp) {
 
-void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
+    if (jsonp_args->one_dict)
+        apr_hash_clear(dict);
 
     /* Traverse json object */
     cJSON *element = record->child;
@@ -205,21 +255,6 @@ void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp) {
 
 }
 
-int JSONp_SerializeRecord(apr_hash_t *dict,
-                          cJSON *record,
-                          JSONpArgs* jsonp_args) {
-    int status = 0;
-    switch(jsonp_args->encoder) {
-    case JpASN1:
-        status = JSONp_ASN1EncodeRecord(record, dict, jsonp_args);
-        break;
-    default:
-        fprintf(stderr, "Error: unknow encoder type \"%s\"\n", jsonp_args->encoder_name);
-        status = JSONP_MISSING_ENCODER;
-        break;
-    }
-    return status;
-}
 
 int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args) {
 

@@ -2,13 +2,10 @@
 
 #include <asn1.h>
 
-int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* jsonp_args) {
+int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* jsonp_args,
+                           Asn1Array *encValue, Asn1Array *keyEnc) {
 
     /* Traverse json structure */
-
-    Asn1Array encValue, keyEnc;
-    Asn1Array_Init(&encValue, "values", record->string);
-    Asn1Array_Init(&keyEnc, "keys", record->string);
     cJSON *element = record->child;
 
     while (element != NULL) {
@@ -50,34 +47,20 @@ int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* js
         }
 
         /* Encoding Records */
-        Asn1Array_AppendPair(&encValue,
+        Asn1Array_AppendPair(encValue,
                              ASN1_TYPE_INTEGER, encrypted_key, /* encrypted key */
                              type, value); /* record value */
 
         /* Encoding Dictionary */
-        Asn1Array_AppendPair(&keyEnc,
+        Asn1Array_AppendPair(keyEnc,
                              ASN1_TYPE_UTF8_STRING, key, /* original key */
                              ASN1_TYPE_INTEGER, encrypted_key); /* encrypted key */
 
         element = element->next;
 
     }
-    /* Print binary array */
-    if (jsonp_args->print_encodings) {
-        Asn1Array_Print(&encValue, " Encoded records in ASN.1 DER:\n");
-        Asn1Array_Print(&keyEnc, " Encoded keys in ASN.1 DER:\n");
-    }
 
-    // TODO: Add log messages !!
-    /* Write to file */
-    Asn1Array_WriteToFile(&encValue, jsonp_args);
-    Asn1Array_WriteToFile(&keyEnc, jsonp_args);
-
-    // free(derEncrkeyValuePairs);
-    Asn1Array_Clear(&encValue);
-    Asn1Array_Clear(&keyEnc);
-
-    return 0;
+    return JSONP_ASN1_SUCCESS;
 
 }
 

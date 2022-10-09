@@ -55,10 +55,63 @@ typedef enum {
 /** @} */
 
 /**
- * @brief Reads a JSON file and generates a binary encoding
- * @param jsonp_args Pointer to the program's options structure
+ * @brief Reads a text file and extracts JSON records for packing
+ * @param jsonp_args Pointer to the command-line arguments
+ * @return int Exit code
  */
 int JSONp_Pack(JSONpArgs *jsonp_args);
+
+/**
+ * @brief Process a JSON record and assigns a numeric key
+ * @param record cJSON object containing a record
+ * @param dict ARP dictionary to store key-value (string-int) pairs
+ * @param jsonp_args Pointer to the command-line arguments
+ * @param mp Pointer to an Apache Runtime memory pool
+ * @return int Exit code
+ */
+int JSONp_ProcessRecord(cJSON *record, apr_hash_t *dict,
+                        JSONpArgs* jsonp_args, apr_pool_t *mp);
+
+/**
+ * @brief Encodes a JSON record and the corresponding numeric keys in binary format
+ *
+ *        For a given JSON record, splits each key-value pair into an `encValue` pair,
+ *        where the keys are replaced by `numeric` pre-assigned values, and a `keyEnc`
+ *        pair, with a mapping between the original keys and the new encoded keys.
+ *
+ * @param dict  Dictionary (hash table) where the entries are the keys
+ *              and the values are the encrypted keys
+ * @param record JSON object (key value pairs)
+ * @param jsonp_args JSONp command-line arguments
+ *
+ * @param encValue Pointer to an Asn1Array containing the resulting
+ *        `numeric key` : `value` binary encoding
+ * @param keyEnc Pointer to an Asn1Array containing the resulting
+ *        `key` : `numeric key` binary encoding
+ *
+ * @return int return status
+*/
+int JSONp_EncodeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args,
+                       Asn1Array *encValue, Asn1Array *keyEnc);
+
+/**
+ * @brief Add the keys of a JSON record to a hash-table
+ * @param dict ARP dictionary to store key-value (string-int) pairs
+ * @param record cJSON object containing a record
+ * @param jsonp_args Pointer to the command-line arguments
+ * @param mp Pointer to an Apache Runtime memory pool
+ * @remark Existing keys are not overwritten.
+ * @return int Exit code
+ */
+void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record,
+                       JSONpArgs* jsonp_args, apr_pool_t *mp);
+
+/**
+ * @brief Prints the full dict
+ * @param dict The ARP dictionary with the key-value (string-long) pairs
+ * @return int exit code
+ */
+int JSONp_PrintDict(apr_hash_t *dict);
 
 /**
  * @brief Prints the JSON object which holds a single record
@@ -71,21 +124,11 @@ int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args);
 /**
  * @brief Prints the record encoding (encoded record and dictionary)
  * @param record The cJSON object containing a record
- * @param dict The ARP dictionary with the key-value (string-long) pairs
+ * @param dict The ARP dictionary with key-value (string-int) pairs
  * @param jsonp_args Pointer to the program's options structure
  * @return int exit code
  */
 int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs *jsonp_args);
 
-/**
- * @brief Prints the full dict
- * @param dict The ARP dictionary with the key-value (string-long) pairs
- * @return int exit code
- */
-int JSONp_PrintDict(apr_hash_t *dict);
-
-void JSONp_UpdateDict (apr_hash_t *dict, const cJSON *record, apr_pool_t *mp);
-
-int JSONp_SerializeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args);
 
 #endif // JSON_PACKER_H

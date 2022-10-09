@@ -4,7 +4,6 @@
 
 #ifndef ASN1_H
 #define ASN1_H
-#include <jsonp.h>
 #include <assert.h>
 #include <string.h>
 
@@ -36,6 +35,20 @@
 #define ASN1_ARRAY_BLOCK_SIZE 4096
 
 /** @} */
+
+/**
+ * @struct Asn1Array
+ * @brief An array structure to represent the `SEQUENCE OF` ASN1 tag.
+ *
+ * Asn1Array stores the contents of a `SEQUENCE OF` tag as a char array.
+ * The buffer size and the next available position are also stored.
+ */
+typedef struct {
+    unsigned char *data; /*!< Der encoding of the container */
+    unsigned char *next; /*!< points to next available space in data */
+    unsigned char *name; /*!< array internal name */
+    size_t size; /*!< array size in bytes */
+} Asn1Array;
 
 /**
  * ASN1_Class.
@@ -94,6 +107,8 @@ enum ASN1_Tag {
     ASN1_TAG_VISIBLE_STRING = 0x1A,
 };
 
+#include <jsonp.h>
+
 /**
  * Asn1Array_AN1Encode
  * Encodes a JSON record and its dictionarys keys in ASN.1 der binary format
@@ -102,6 +117,11 @@ enum ASN1_Tag {
  * @param dict  Dictionary (hash table) where the entries are the keys
  *              and the values are the encrypted keys
  * @param jsonp_args JSONp command-line arguments
+ * @param encValue Pointer to an Asn1Array containing the resulting
+ *        `numeric key` : `value` binary encoding
+ * @param keyEnc Pointer to an Asn1Array containing the resulting
+ *        `key` : `numeric key` binary encoding
+ *
  * @return int return status
  * @remarks When enconding the dictionary, only the elements present in the
  *          dictionary are encoded, as the dicionary may contain elements
@@ -117,21 +137,9 @@ enum ASN1_Tag {
      }
 
 */
-int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* jsonp_args);
+int JSONp_ASN1EncodeRecord(const cJSON *record, apr_hash_t *dict, JSONpArgs* jsonp_args,
+                           Asn1Array *encValue, Asn1Array *keyEnc);
 
-/**
- * @struct Asn1Array
- * @brief An array structure to represent the `SEQUENCE OF` ASN1 tag.
- *
- * Asn1Array stores the contents of a `SEQUENCE OF` tag as a char array.
- * The buffer size and the next available position are also stored.
- */
-typedef struct {
-    unsigned char *data; /*!< Der encoding of the container */
-    unsigned char *next; /*!< points to next available space in data */
-    unsigned char *name; /*!< array internal name */
-    size_t size; /*!< array size in bytes */
-} Asn1Array;
 
 /**
  * Asn1Array_Init
