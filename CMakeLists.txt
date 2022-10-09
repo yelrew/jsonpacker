@@ -19,7 +19,6 @@ include_directories(jsonpackerc ${CMAKE_SOURCE_DIR}/src
 # target_include_directories(jsonpackerc INTERFACE apr-1)
 # SET(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")
 
-
 set(target_sources
     main.c
     jsonp.h

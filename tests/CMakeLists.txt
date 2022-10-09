@@ -1,6 +1,7 @@
 if(ENABLE_JSONP_TEST)
 
     add_library(unity STATIC Unity/src/unity.c)
+#    target_include_directories(unity PUBLIC Unity/src)
 
     #    set(unity_tests
     #        test_jsonp_asn1
@@ -22,6 +23,11 @@ if(ENABLE_JSONP_TEST)
 
     # add the executable (Just one executable!)
     add_executable (unity_tests ${DriverUnityTests})
+    target_include_directories(unity_tests PUBLIC
+      ${CMAKE_SOURCE_DIR}/tests/Unity/src
+    )
+
+    target_link_libraries(unity_tests unity)
 
     # remove the test driver source file
     #      set (TestsToRun ${Tests})
