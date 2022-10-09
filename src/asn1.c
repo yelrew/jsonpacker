@@ -127,7 +127,7 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
     case ASN1_TYPE_INTEGER:
         tag = element_class | ASN1_TAG_INTEGER;
         /* Number of significant bytes of the integer */
-        length = SignedIntMinLength(*((int*) value));
+        length = MinSignedIntLength(*((int*) value));
         break;
     case ASN1_TYPE_BOOLEAN:
         tag = element_class | ASN1_TAG_BOOLEAN;
@@ -161,7 +161,7 @@ int Asn1Array_Insert(Asn1Array* array, enum ASN1_Type type, void* value) {
 
 }
 
-unsigned char SignedIntMinLength (int num) {
+unsigned char MinSignedIntLength (int num) {
 
     int sign_bit, first_oct_msk, second_oct_b8_msk, nbytes;
     int szint = JSONP_INT_SIZE;

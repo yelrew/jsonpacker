@@ -38,16 +38,29 @@ add_executable(jsonpackerc "${target_sources}")
 target_link_libraries(jsonpackerc apr-1)
 
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
-if (DOXYGEN_FOUND)
-  set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md")
-  set(DOXYGEN_PROJECT_BRIEF  "A JSON binary packer")
-  set(PROJECT_NAME "JSON Packer")
-#  set(PROJECT_NUMBER 1.0.0)
-  set(DOXYGEN_EXCLUDE_PATTERNS "${CMAKE_SOURCE_DIR}/src/cJSON")
 
-  doxygen_add_docs(doc
-    "${CMAKE_SOURCE_DIR}/src"
-    "${CMAKE_SOURCE_DIR}/README.md"
-    COMMENT "Generating API documentation with Doxygen"
-  )
+
+if (DOXYGEN_FOUND)
+
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md")
+    set(DOXYGEN_PROJECT_BRIEF  "A JSON binary packer")
+    set(PROJECT_NAME "JSON Packer")
+#  set(PROJECT_NUMBER 1.0.0)
+    set(DOXYGEN_EXCLUDE_PATTERNS "${CMAKE_SOURCE_DIR}/src/cJSON")
+
+    doxygen_add_docs(doc
+        "${CMAKE_SOURCE_DIR}/src"
+        "${CMAKE_SOURCE_DIR}/README.md"
+        COMMENT "Generating API documentation with Doxygen"
+    )
+
 endif(DOXYGEN_FOUND)
+
+option(ENABLE_JSONP_TEST "Enable building JSONp test" ON)
+
+if (ENABLE_JSONP_TEST)
+    enable_testing()
+    add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+endif()
+
+

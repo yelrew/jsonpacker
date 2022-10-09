@@ -199,7 +199,7 @@ int Asn1Array_AppendPair(Asn1Array* array, \
  * @param number Signed integer
  * @return minimum number of bytes to represet the number
  */
-unsigned char SignedIntMinLength(int number);
+unsigned char MinSignedIntLength(int number);
 
 int Asn1Array_WriteToFile (Asn1Array* array, JSONpArgs *jsonp_args);
 
