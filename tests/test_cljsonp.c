@@ -10,7 +10,7 @@ static void invalid_option_from_command_line(void) {
                     "--bad-option"};
     JSONpArgs jsonp_args;
 
-    TEST_ASSERT(jsonp_argparser (&argc, argv, &jsonp_args) != JSONP_SUCCESS);
+    TEST_ASSERT(jsonp_argparser (&argc, argv, &jsonp_args, ARGP_SILENT) != JSONP_SUCCESS);
 }
 
 int test_cljsonp() {

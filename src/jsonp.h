@@ -39,12 +39,6 @@ typedef enum {
 /* JSONp headers */
 #include <asn1.h>
 
-/**
- * @addtogroup JSONp
- *
- * @{
- */
-
 /* project version */
 #define JSONP_VERSION_MAJOR 1
 #define JSONP_VERSION_MINOR 0
@@ -61,6 +55,14 @@ typedef enum {
 #define JSONP_INT_SIZE 4
 #define MAX_LONG_INT_DIGITS 50
 #define _TO_STRING_(_NAME_) #_NAME_
+
+
+
+/**
+ * @addtogroup JSONp
+ *
+ * @{
+ */
 
 /**
  * @brief Reads a text file and extracts JSON records for packing

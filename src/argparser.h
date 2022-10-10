@@ -8,13 +8,13 @@
 #include <argp.h>
 #include <stdbool.h>
 
-#define JSONP_ARGS_SIZE 1
+#define JSONP_ARGS_SIZE 1 /**< number of command-line arguments */
 
 /**
  * A strucutre to store JSONp command-line arguments
  */
 typedef struct {
-  char *args[JSONP_ARGS_SIZE+5]; /* <JSON input file> */
+  char *args[JSONP_ARGS_SIZE+5]; /**< JSON input file */
   char *outfile; /**< Argument for -o */
   char *infile; /**< Input file with JSON records */
   bool one_dict; /**< Use a single dictionary for all records */
@@ -31,9 +31,10 @@ typedef struct {
  * @param argc Arguments count
  * @param argv Arguments' string array
  * @param jsonp_args JSONp structure that controls the program options
+ * @param flags Optional flags to send to the parser (0 if None)
  * @return int Exit status code
  */
-int jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args);
+int jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args, unsigned flags);
 
 /**
  *  Argp external parser
