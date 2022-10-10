@@ -1,9 +1,17 @@
-/** @file jsonpasn1.h
- * JSONp functions and definitions
+/**
+ * @file jsonp.h
+ * @author Eduardo Werley
+ * @brief JSONp functions and definitions
  */
 
 #ifndef JSON_PACKER_H
 #define JSON_PACKER_H
+
+/**
+ * @defgroup JSONp JSON Packer
+ *
+ * @{
+ */
 
 /**
  * JSONpEncoder.
@@ -14,6 +22,8 @@ typedef enum {
     GnuASN1, /**< GNU Libtasn */
     libBSON, /**< LibBSON */
 } JSONpEncoder;
+
+/** @} */
 
 #define JSONP_MAX_ENCNAME_LENGTH 10 /**< maximum encoder name length !! */
 
@@ -30,7 +40,7 @@ typedef enum {
 #include <asn1.h>
 
 /**
- * @defgroup JSONp_Definitions JSONp Definitions
+ * @addtogroup JSONp
  *
  * @{
  */
@@ -51,8 +61,6 @@ typedef enum {
 #define JSONP_INT_SIZE 4
 #define MAX_LONG_INT_DIGITS 50
 #define _TO_STRING_(_NAME_) #_NAME_
-
-/** @} */
 
 /**
  * @brief Reads a text file and extracts JSON records for packing
@@ -131,4 +139,6 @@ int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args);
 int JSONp_PrintEncoding(apr_hash_t *dict, const cJSON *record, JSONpArgs *jsonp_args);
 
 
-#endif // JSON_PACKER_H
+/** @} */
+
+#endif

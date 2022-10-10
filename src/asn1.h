@@ -1,4 +1,4 @@
-/** @file jsonpasn1.h
+/** @file asn1.h
  * Functions and definitions for the JSONp-ASN1 interface
  */
 
@@ -7,10 +7,9 @@
 #include <assert.h>
 #include <string.h>
 
-/**
- * @ingroup JSONp ASN1 Return codes
- *
- * @{
+/** @defgroup JSONp_ASN1 JSON Packer ASN.1 module
+ *  Definitions related to ASN.1 encoder
+ *  @{
  */
 
 #define JSONP_ASN1_SUCCESS           0 /**< ASN1 Encoding sucess */
@@ -34,7 +33,6 @@
 
 #define ASN1_ARRAY_BLOCK_SIZE 4096
 
-/** @} */
 
 /**
  * @struct Asn1Array
@@ -127,16 +125,24 @@ enum ASN1_Tag {
  *          dictionary are encoded, as the dicionary may contain elements
  *          of another records.
  *
- *     Encode key-Value Pair (encrypted key plus key value)
-     *
-     * ASN1 Encode will be as follows:
-
-     EncryptedkeyValue ::= SEQUENCE {
-         encrkey      INTEGER
-         value     UTF8String,
-     }
-
-*/
+ *          The enconding of the encValue array in ASN.1 DER is as follows
+ *
+ *          DEFINITIONS ::= BEGIN
+ *
+ *              EncValue ::= SEQUENCE OF SEQUENCE {
+ *                  enc INTEGER,
+ *                  value CHOICE {
+ *                      int INTEGER,
+ *                      str UTF8String,
+ *                      bool BOOLEAN
+ *                  }
+ *              }
+ *
+ *              KeyEnc ::= SEQUENCE OF SEQUENCE {
+ *                  key UTF8String,
+ *                  enc INTEGER
+ *              }
+ */
 int JSONp_ASN1EncodeRecord(const cJSON *record, apr_hash_t *dict, JSONpArgs* jsonp_args,
                            Asn1Array *encValue, Asn1Array *keyEnc);
 
@@ -209,7 +215,15 @@ int Asn1Array_AppendPair(Asn1Array* array, \
  */
 unsigned char MinSignedIntLength(int number);
 
+/**
+ * Write an binary Asn1Array to a file
+ *
+ * @param array Asn1Array
+ * @param jsonp_args JSONp command-line arguments
+ * @return int Exit status
+ */
 int Asn1Array_WriteToFile (Asn1Array* array, JSONpArgs *jsonp_args);
 
+/** @} */
 
 #endif

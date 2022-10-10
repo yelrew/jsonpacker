@@ -46,6 +46,7 @@ if (DOXYGEN_FOUND)
     set(PROJECT_NAME "JSON Packer")
 #  set(PROJECT_NUMBER 1.0.0)
     set(DOXYGEN_EXCLUDE_PATTERNS "${CMAKE_SOURCE_DIR}/src/cJSON")
+    set(DOXYGEN_GENERATE_XML YES)
 
     doxygen_add_docs(doc
         "${CMAKE_SOURCE_DIR}/src"

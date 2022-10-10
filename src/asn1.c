@@ -1,4 +1,7 @@
-//#include "asn1encoder.h"
+/**
+ * @file asn1.c
+ * @brief JSONp ASN.1 interface definitions
+ */
 
 #include <asn1.h>
 
