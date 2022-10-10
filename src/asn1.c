@@ -11,8 +11,7 @@ int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* js
     while (element != NULL) {
 
         char *key = element->string;
-        long *encrypted_key = apr_hash_get (dict,  (const void*) element->string,
-                                      APR_HASH_KEY_STRING);
+        long *encrypted_key;
         void *value;
         enum ASN1_Type type;
 
@@ -48,6 +47,8 @@ int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* js
             return JSONP_cJSON_INVALID_TYPE;
         }
 
+        encrypted_key = apr_hash_get (dict,  (const void*) element->string,
+                                      APR_HASH_KEY_STRING);
         /* Encoding Records */
         Asn1Array_AppendPair(encValue,
                              ASN1_TYPE_INTEGER, encrypted_key, /* encrypted key */

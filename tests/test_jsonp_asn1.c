@@ -26,10 +26,28 @@ static void assert_length_equal_min_signed_int_length(void) {
     TEST_ASSERT_EQUAL(1, MinSignedIntLength(1));
 }
 
+
+static void do_not_handle_complex_json_type(void) {
+
+    /* Key 1 stores a JSON array */
+    char *string = "{\"key1\": [\"value\"], \"key2\": 42, \"key3\": true}";
+    cJSON *record = cJSON_Parse(string);
+    JSONpArgs jsonp_args;
+    jsonp_args.print_encodings = false;
+    jsonp_args.print_records = false;
+    jsonp_args.print_records_full = false;
+    jsonp_args.write_binary_files = false;
+
+    TEST_ASSERT(JSONp_ASN1EncodeRecord(record, NULL, &jsonp_args, NULL, NULL));
+    cJSON_Delete(record);
+
+}
+
 int test_jsonp_asn1() {
 
     UNITY_BEGIN();
     RUN_TEST(assert_length_equal_min_signed_int_length);
+    RUN_TEST(do_not_handle_complex_json_type);
     return UNITY_END();
 
 }

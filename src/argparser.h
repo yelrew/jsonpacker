@@ -31,9 +31,9 @@ typedef struct {
  * @param argc Arguments count
  * @param argv Arguments' string array
  * @param jsonp_args JSONp structure that controls the program options
- * @return void
+ * @return int Exit status code
  */
-void jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args);
+int jsonp_argparser(int *argc, char** argv, JSONpArgs* jsonp_args);
 
 /**
  *  Argp external parser

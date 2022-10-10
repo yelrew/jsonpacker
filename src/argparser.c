@@ -94,8 +94,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     return 0;
 }
 
-void jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
+int jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
 
+    int status = 0;
     /* Set argument defaults */
 
     jsonp_args->outfile = NULL;
@@ -114,6 +115,8 @@ void jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
             JSONP_VERSION_MAJOR, JSONP_VERSION_MINOR);
     argp_program_version = argp_program_version_full;
 
-    argp_parse (&argp, *argc, argv, 0, 0, jsonp_args);
+    status = argp_parse (&argp, *argc, argv, ARGP_SILENT, 0, jsonp_args);
+
+    return status;
 
 }

@@ -3,7 +3,7 @@
 
 static void asn1_encoder_matches_expected_bytearray(void) {
 
-    char *string;
+    char *test_string;
     cJSON *record;
     apr_hash_t *dict;
     apr_pool_t *mp;
@@ -62,7 +62,6 @@ static void invalid_encoder_choice(void) {
     jsonp_args.write_binary_files = false;
 
     TEST_ASSERT(JSONp_EncodeRecord(NULL, record, &jsonp_args, NULL, NULL));
-
     cJSON_Delete(record);
 
 }
@@ -70,7 +69,7 @@ static void invalid_encoder_choice(void) {
 int test_jsonp() {
 
     UNITY_BEGIN();
-    // RUN_TEST(invalid_encoder_choice);
+    RUN_TEST(invalid_encoder_choice);
     RUN_TEST(asn1_encoder_matches_expected_bytearray);
     return UNITY_END();
 
