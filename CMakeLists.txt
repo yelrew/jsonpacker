@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_C_STANDARD 99)
 # SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} --g")
 
-project(jsonpackerc LANGUAGES C)
+project(jsonpacker LANGUAGES C)
 
 FIND_PATH(
   APR_INCLUDE_DIR
@@ -15,10 +15,10 @@ FIND_PATH(
     /usr/include/apr-1.0
 )
 
-include_directories(jsonpackerc ${CMAKE_SOURCE_DIR}/src
+include_directories(jsonpacker ${CMAKE_SOURCE_DIR}/src
                     "${APR_INCLUDE_DIR}")
 
-# target_include_directories(jsonpackerc INTERFACE apr-1)
+# target_include_directories(jsonpacker INTERFACE apr-1)
 # SET(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")
 
 set(target_sources
@@ -35,8 +35,8 @@ set(target_sources
 
 list(TRANSFORM target_sources PREPEND "${CMAKE_SOURCE_DIR}/src/")
 
-add_executable(jsonpackerc "${target_sources}")
-target_link_libraries(jsonpackerc apr-1)
+add_executable(jsonpacker "${target_sources}")
+target_link_libraries(jsonpacker apr-1)
 
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 

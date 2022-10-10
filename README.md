@@ -10,7 +10,7 @@
 
 ## Synopsis
 
-    Usage: jsonpackerc [OPTION...] <JSON file>
+    Usage: jsonpacker [OPTION...] <JSON file>
     JSON Packer -- A program to encode JSON key-valued objects in binary format.
     
       -d, --one-dict             Use a single dicionary for all records (optional)

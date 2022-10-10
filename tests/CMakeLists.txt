@@ -2,8 +2,8 @@ if(ENABLE_JSONP_TEST)
 
     add_library(unity STATIC Unity/src/unity.c)
 
-    add_library(jsonpacker "${target_sources}")
-    target_link_libraries(jsonpacker apr-1)
+    add_library(libjsonpacker "${target_sources}")
+    target_link_libraries(libjsonpacker apr-1)
 
 
 #    target_include_directories(unity PUBLIC Unity/src)
@@ -32,7 +32,7 @@ if(ENABLE_JSONP_TEST)
       ${CMAKE_SOURCE_DIR}/tests/Unity/src
     )
 
-    target_link_libraries(unity_tests unity jsonpacker)
+    target_link_libraries(unity_tests unity libjsonpacker)
 
     # remove the test driver source file
     #      set (TestsToRun ${Tests})

@@ -35,7 +35,7 @@ extensions = ['breathe', 'myst_parser', 'sphinx.ext.napoleon', 'sphinx.ext.viewc
 napoleon_use_param = False
 napoleon_use_ivar = True
 
-breathe_projects = {"jsonpacker": "/home/werley/projects/jsonpackerc/build-jsonpackerc-Qt_5_9_7_in_PATH_anaconda3-Debug/xml"}
+breathe_projects = {"jsonpacker": "/home/werley/projects/jsonpacker/build-jsonpacker-Qt_5_9_7_in_PATH_anaconda3-Debug/xml"}
 
 breathe_default_project = "jsonpacker"
 
