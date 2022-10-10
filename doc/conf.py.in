@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'jsonpacker'
+project = '@PROJECT_NAME@'
 copyright = '2022, Eduardo Werley'
 author = 'Eduardo Werley'
 
@@ -35,9 +35,9 @@ extensions = ['breathe', 'myst_parser', 'sphinx.ext.napoleon', 'sphinx.ext.viewc
 napoleon_use_param = False
 napoleon_use_ivar = True
 
-breathe_projects = {"jsonpacker": "/home/werley/projects/jsonpacker/build/doc/doxygen/xml"}
+breathe_projects = {"jsonpacker": "@CMAKE_CURRENT_BINARY_DIR@/doc/doxygen/xml"}
 
-breathe_default_project = "jsonpacker"
+breathe_default_project = "@PROJECT_NAME@"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

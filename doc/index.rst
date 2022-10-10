@@ -10,6 +10,7 @@ Welcome to jsonpacker's documentation!
       :parser: myst_parser.sphinx_
 
 .. toctree::
+   :hidden:
    :maxdepth: 2
    :caption: Contents
 

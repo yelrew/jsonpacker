@@ -35,6 +35,10 @@
 
 #define ASN1_ARRAY_BLOCK_SIZE 4096
 
+/** @defgroup JSONp_ASN1_enums Enumerations
+ *  ASN.1 encoder Enumerations
+ *  @{
+ */
 
 /**
  * @struct Asn1Array
@@ -106,6 +110,8 @@ enum ASN1_Tag {
     ASN1_TAG_UTF8_STRING = 0x0C,
     ASN1_TAG_VISIBLE_STRING = 0x1A,
 };
+
+/** @} */
 
 #include <jsonp.h>
 

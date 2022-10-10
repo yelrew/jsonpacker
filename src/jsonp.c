@@ -6,6 +6,12 @@
 #include <jsonp.h>
 #include <argparser.h>
 
+/**
+ * @addtogroup JSONp
+ *
+ * @{
+ */
+
 int JSONp_Pack(JSONpArgs* jsonp_args) {
 
     const char *records_filepath = jsonp_args->infile;
@@ -286,4 +292,6 @@ int JSONp_cJSON_print(const cJSON * record, JSONpArgs *jsonp_args) {
     return JSONP_SUCCESS;
 
 }
+
+/** @} */
 
