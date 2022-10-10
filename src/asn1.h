@@ -147,12 +147,12 @@ int JSONp_ASN1EncodeRecord(const cJSON *record, apr_hash_t *dict, JSONpArgs* jso
  *
  * @param array Asn1Array array
  * @param name Optional name to assign to the array (NULL if none)
- * @param tag Optional tag to assign to the array (NULL if none)
+ * @param suffix Optional tag to assign to the array (NULL if none)
  * @return status Initialization results
  *
  * @note The string name followed '-' and the tag defines the array's suffix,
  */
-int Asn1Array_Init(Asn1Array* array, unsigned char *name, unsigned char *tag);
+int Asn1Array_Init(Asn1Array* array, unsigned char *name, unsigned char *suffix);
 
 /**
  * Asn1Array_Clear

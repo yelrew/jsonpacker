@@ -44,6 +44,8 @@ int JSONp_ASN1EncodeRecord(const cJSON * record, apr_hash_t *dict, JSONpArgs* js
             type = ASN1_TYPE_UTF8_STRING;
             value = element->valuestring;
             break;
+        default:
+            return JSONP_cJSON_INVALID_TYPE;
         }
 
         /* Encoding Records */
@@ -177,21 +179,31 @@ int Asn1Array_Print(Asn1Array* array, char* message) {
 
 }
 
-int Asn1Array_Init(Asn1Array* array, unsigned char* name, unsigned char* tag) {
+int Asn1Array_Init(Asn1Array* array, unsigned char* name,
+                                     unsigned char* suffix) {
 
     enum ASN1_Class array_class;
     enum ASN1_Tag array_tag;
+    size_t strlen_suffix;
+
+    /* Check if the name suffix was provided */
+    if (suffix == NULL)
+        strlen_suffix = 0;
+    else
+        strlen_suffix = strlen(suffix);
 
     array_class = ASN1_CLASS_UNIVERSAL;
     array_class |= ASN1_CLASS_STRUCTURED;
     array_tag = array_class | ASN1_TAG_SEQUENCE_OF;
 
-    array->name = malloc( strlen(name) + strlen("-") + strlen(tag) + 1);
+
+    array->name = malloc( strlen(name) + strlen("-") + strlen_suffix + 1);
     assert (array->name != NULL);
     array->name[0] = '\0';
     strcat(array->name, name);
     strcat(array->name, "-");
-    strcat(array->name, tag);
+    if (strlen_suffix)
+        strcat(array->name, suffix);
 
     /* Tries to allocate array memory (default ASN1_ARRAY_BLOCK_SIZE bytes) */
     array->data = malloc(ASN1_ARRAY_BLOCK_SIZE);

@@ -21,6 +21,7 @@ typedef struct {
   bool print_encodings; /**< Print binary encodings */
   bool print_records; /**< Print records in compacted JSON style */
   bool print_records_full ; /**< Print records in a full JSON style */
+  bool write_binary_files ; /**< Write binary enconding files */
   JSONpEncoder encoder; /**< Encoder type */
   char encoder_name[JSONP_MAX_ENCNAME_LENGTH]; /**< maximum encoder name length */
 } JSONpArgs;

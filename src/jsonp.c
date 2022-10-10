@@ -50,7 +50,7 @@ int JSONp_Pack(JSONpArgs* jsonp_args) {
 int JSONp_ProcessRecord(cJSON *record, apr_hash_t *dict,
                         JSONpArgs* jsonp_args, apr_pool_t *mp) {
     int status = 0;
-    size_t record_num = 0;
+    static size_t record_num = 0;
 
     if (record == NULL) {
         const char *error_ptr = cJSON_GetErrorPtr();
@@ -93,18 +93,19 @@ int JSONp_EncodeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args,
     int ret_status = 0;
 
     /* Initializing Asn1Arrays */
+
     bool free_encValue = false;
     bool free_keyEnc = false;
     if (encValue == NULL) {
         encValue = malloc (sizeof(Asn1Array));
+        Asn1Array_Init(encValue, "values", record->string);
         free_encValue = true;
     }
     if (keyEnc == NULL) {
         keyEnc = malloc (sizeof(Asn1Array));
+        Asn1Array_Init(keyEnc, "keys", record->string);
         free_keyEnc = true;
     }
-    Asn1Array_Init(encValue, "values", record->string);
-    Asn1Array_Init(keyEnc, "keys", record->string);
 
     /* Calling binary encoder */
     switch(jsonp_args->encoder) {
@@ -113,7 +114,7 @@ int JSONp_EncodeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args,
         break;
     default:
         fprintf(stderr, "Error: unknow encoder type \"%s\"\n", jsonp_args->encoder_name);
-        ret_status = JSONP_MISSING_ENCODER;
+        ret_status = JSONP_INVALID_ENCODER;
         break;
     }
 
@@ -124,16 +125,21 @@ int JSONp_EncodeRecord(apr_hash_t *dict, cJSON *record, JSONpArgs* jsonp_args,
             Asn1Array_Print(keyEnc, " Encoded keys in ASN.1 DER:\n");
         }
         /* Write to file */
-        Asn1Array_WriteToFile(encValue, jsonp_args);
-        Asn1Array_WriteToFile(keyEnc, jsonp_args);
+        if (jsonp_args->write_binary_files) {
+            Asn1Array_WriteToFile(encValue, jsonp_args);
+            Asn1Array_WriteToFile(keyEnc, jsonp_args);
+        }
     }
 
-    Asn1Array_Clear(encValue);
-    Asn1Array_Clear(keyEnc);
-    if (free_keyEnc)
+    if (free_keyEnc) {
+        Asn1Array_Clear(keyEnc);
         free(keyEnc);
-    if (free_encValue)
+    }
+    if (free_encValue) {
+        Asn1Array_Clear(encValue);
         free(encValue);
+    }
+
     return ret_status;
 }
 

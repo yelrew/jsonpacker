@@ -42,7 +42,7 @@ typedef enum {
 /* Exit codes */
 #define JSONP_SUCCESS              0 /**< Success! */
 #define JSONP_FILE_OPEN_ERROR      1 /**< Problem when opening file */
-#define JSONP_MISSING_ENCODER      2 /**< Encoder not implemented */
+#define JSONP_INVALID_ENCODER      2 /**< Encoder not implemented */
 #define JSONP_cJSON_SYNTAX_ERROR   3
 #define JSONP_cJSON_PRINT_ERROR    4
 #define JSONP_cJSON_INVALID_TYPE   5 /**< JSON object not handled */

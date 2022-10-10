@@ -14,6 +14,9 @@ static struct argp_option options[] = {
     /*******/
     {"encoder",  'e' , "encoder", 0,
         "Changes default file output name (optional)", 0},
+    /*******/
+    {"no-file-output",  'n' , NULL, 0,
+        "Do not write binary files", 0},
     /*********************/
     {0,0,0,0, "Output formatting",0},
     /*********************/
@@ -63,6 +66,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         else if (strcmp(arg, "libBSON") == 0)
             arguments->encoder = libBSON;
         break;
+    case 'n':
+        arguments->write_binary_files = false;
+        break;
     case 'o':
         arguments->outfile = arg;
         break;
@@ -98,6 +104,8 @@ void jsonp_argparser(int *argc, char** argv, JSONpArgs *jsonp_args) {
     jsonp_args->print_encodings = false;
     jsonp_args->print_records = false;
     jsonp_args->print_records_full = false;
+    jsonp_args->write_binary_files = true;
+
     strcpy(jsonp_args->encoder_name, "JpASN1");
 
     char argp_program_version_full[80];

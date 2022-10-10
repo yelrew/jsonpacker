@@ -15,7 +15,8 @@ if(ENABLE_JSONP_TEST)
     set(unity_tests
         test_first.c
         test_first_unity.c
-        test_jsonp_asn1.c        
+        test_jsonp.c
+        test_jsonp_asn1.c
     )
 
     create_test_sourcelist (DriverUnityTests
