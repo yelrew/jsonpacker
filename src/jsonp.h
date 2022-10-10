@@ -1,7 +1,7 @@
 /**
  * @file jsonp.h
- * @author Eduardo Werley
  * @brief JSONp functions and definitions
+ * @author Eduardo Werley
  */
 
 #ifndef JSON_PACKER_H

@@ -2,6 +2,12 @@
 
 **A JSON binary packer**.
 
+|                    | URL                                                           |
+|--------------------|---------------------------------------------------------------|
+| **Repository:**    | https://github.com/yelrew/jsonpacker                          |
+| **Documentation:** | https://yelrew.github.io/jsonpacker-doc                       |
+
+
 ## Synopsis
 
     Usage: jsonpackerc [OPTION...] <JSON file>
@@ -23,16 +29,18 @@
 
 
 
-_JSON packer_ is a small utility that reads sequences of JSON records and encode them in  binary format.
-_JSON packer_ makes uses of [cJSON](https://github.com/DaveGamble/cJSON) to parse the objects.
+_JSON Packer_ is a small utility that reads sequences of JSON records and encode them in  binary format.
+_JSON Packer_ makes uses of [cJSON](https://github.com/DaveGamble/cJSON) to parse the objects.
 
-Each JSON key-value record is split into two new pairs: an `encValue` pair,
+Each JSON key-value record is split into two pairs: an `encValue` pair,
 whith the keys replaced by "numeric" pre-assigned values; and a `keyEnc`
 pair, with a mapping between the original keys and the new encoded keys.
+`JSON Packer` uses a hash table from the Apache Portable Runtime Librar (APR)
+to store the dicionary.
 The encoded values and keys can be optionally written to a file stream.
 
 By default, _JSON packer_ adopts the
-[ASN.1](https://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx) _DER_ format to encode the records.
+[ASN.1](https://www.itu.int/en/ITU-T/asn1/Pages/introduction.aspx) _DER_ codec to encode the records.
 New encoder types are expected to be released soon.
 
 ## Basic usage

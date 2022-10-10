@@ -1,5 +1,7 @@
-/** @file asn1.h
- * Functions and definitions for the JSONp-ASN1 interface
+/**
+ * @file asn1.h
+ * @brief Functions and definitions for the JSONp-ASN1 interface
+ * @author Eduardo Werley
  */
 
 #ifndef ASN1_H
