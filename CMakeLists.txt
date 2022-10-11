@@ -4,7 +4,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_C_STANDARD 99)
 
 set(PROJECT_NAME jsonpacker)
-project("${PROJECT_NAME}" LANGUAGES C VERSION 1.0.0)
+project("${PROJECT_NAME}" LANGUAGES C VERSION 1.0.1)
 
 option(WITH_SPHINX "Generate Sphinx Documentation")
 
